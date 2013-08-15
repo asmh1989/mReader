@@ -7,7 +7,11 @@ import org.htmlparser.Node;
 import org.htmlparser.NodeFilter;
 import org.htmlparser.Parser;
 import org.htmlparser.filters.HasAttributeFilter;
+import org.htmlparser.filters.HasChildFilter;
+import org.htmlparser.filters.TagNameFilter;
 import org.htmlparser.tags.Div;
+import org.htmlparser.tags.HeadingTag;
+import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
@@ -40,6 +44,17 @@ public class MtParser {
 		}
 	}
 
+	public Parser parser(String url){
+		Parser p = null;
+		try {
+			p = new Parser(url);
+			return p;
+		} catch (ParserException e) {	
+			e.printStackTrace();
+			return p;
+		} 
+	}
+
 	public List<LinkTagSet> getBookCategory(){
 		List<LinkTagSet> list  = new ArrayList<LinkTagSet>();
 		NodeFilter filter = new HasAttributeFilter("class", "mainnav_list");
@@ -65,7 +80,7 @@ public class MtParser {
 		}
 		return list;
 	}
-
+	
 	public List<MtBookList> getBookList(String url){
 		Log.d(TAG, "open url = "+url);
 		List<MtBookList> list = new ArrayList<MtBookList>();
@@ -78,10 +93,42 @@ public class MtParser {
 				Node n = nodes.elementAt(i);
 				if(n instanceof Div){
 					Div d = (Div)n;
+					MtBookList bl = new MtBookList();
 					for (int j =0; j < d.getChildren().size(); j++){
-						Log.d(TAG, j+ " text = "+d.getChildren().elementAt(j).getText() + " painet"+
-								d.getChildren().elementAt(j).toPlainTextString());
+						String str = d.getChildren().elementAt(j).toHtml();
+						if(d.getChildren().elementAt(j).getText().contains("tutuiImg")){
+//							Log.d(TAG, "image html = "+d.getChildren().elementAt(j).toHtml());
+							NodeList d2 = d.getChildren().elementAt(j).getChildren();
+							while(!(d2.elementAt(0) instanceof ImageTag)){
+								d2 = d2.elementAt(0).getChildren();
+							}
+							
+							ImageTag img = (ImageTag)d2.elementAt(0);
+							bl.imageUrl = img.getImageURL();
+						} else if(d.getChildren().elementAt(j).getText().contains("tutuiTitle")){
+//							Log.d(TAG, "title html = "+d.getChildren().elementAt(j).toHtml());
+							NodeList d2 = d.getChildren().elementAt(j).getChildren();
+							for(Node d3 : d2.toNodeArray()){
+								if( d3 instanceof HeadingTag){
+									HeadingTag d4 = ((HeadingTag) d3);
+									String Tag = d4.getTagName();
+									if("H1".equals(Tag)){
+										LinkTag link = (LinkTag)d4.getChildren().elementAt(0);
+										bl.bookUrl = link.getLink();
+										bl.bookName = link.toPlainTextString();
+									} else if("H2".equals(Tag)){
+										bl.bookAuthor = d4.getChildren().elementAt(0).toPlainTextString();
+									} else if("H3".equals(Tag)){
+										bl.bookAbout = d3.getLastChild().toPlainTextString();
+									}
+								}
+							}
+							bl.bookAbout.contains("\n");
+							bl.bookAbout.substring(bl.bookAbout.lastIndexOf("\n"));
+						}
 					}
+					
+//					list.add(bl);
 				}
 			}
 

@@ -1,6 +1,6 @@
 package com.sun.mybookreader.mt;
 
-public class MtBookList {
+public class MtBookUtil {
 	public String imageName;
 	public String imageUrl;
 	public String bookName;

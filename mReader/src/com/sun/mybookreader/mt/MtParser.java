@@ -7,19 +7,16 @@ import org.htmlparser.Node;
 import org.htmlparser.NodeFilter;
 import org.htmlparser.Parser;
 import org.htmlparser.filters.HasAttributeFilter;
-import org.htmlparser.filters.HasChildFilter;
-import org.htmlparser.filters.TagNameFilter;
 import org.htmlparser.tags.Div;
 import org.htmlparser.tags.HeadingTag;
 import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
-import org.htmlparser.util.NodeIterator;
+import org.htmlparser.tags.ParagraphTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
-import com.sun.mybookreader.utils.Log;
-
 import com.sun.mybookreader.html.LinkTagSet;
+import com.sun.mybookreader.utils.Log;
 
 public class MtParser {
 	private static final String TAG = "MtParser";
@@ -28,13 +25,11 @@ public class MtParser {
 	private Parser mParser;
 
 	public MtParser() {
-		mHtmlUrl = MtUtils.MT_URL;
-		parser();
+		parser(MtUtils.MT_URL);
 	}
 
 	public MtParser(String url){
-		mHtmlUrl = url;
-		parser();
+		parser(url);
 	}
 
 	public void parser(){
@@ -46,31 +41,25 @@ public class MtParser {
 		}
 	}
 
-	public Parser parser(String url){
-		Parser p = null;
-		try {
-			p = new Parser(url);
-			return p;
-		} catch (ParserException e) {	
-			e.printStackTrace();
-			return p;
-		} 
+	public void parser(String url){
+		mHtmlUrl = url;
+		parser();
 	}
 
 	public List<LinkTagSet> getBookCategory(){
-//		Log.d(TAG, "start getBookCategory "+mParser);
+		//		Log.d(TAG, "start getBookCategory "+mParser);
 		List<LinkTagSet> list  = new ArrayList<LinkTagSet>();
 		NodeFilter filter = new HasAttributeFilter("class", "mainnav_list");
 
-//		try {
-//			for (NodeIterator i = mParser.elements (); i.hasMoreNodes(); ) {
-//				Node node = i.nextNode();
-//				Log.d(TAG, "html = "+node.toHtml());
-//			}
-//		} catch (ParserException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		//		try {
+		//			for (NodeIterator i = mParser.elements (); i.hasMoreNodes(); ) {
+		//				Node node = i.nextNode();
+		//				Log.d(TAG, "html = "+node.toHtml());
+		//			}
+		//		} catch (ParserException e) {
+		//			// TODO Auto-generated catch block
+		//			e.printStackTrace();
+		//		}
 
 		try {
 			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
@@ -98,10 +87,9 @@ public class MtParser {
 	}
 
 	public List<MtBookUtil> getBookList(String url){
-//		Log.d(TAG, "open url = "+url);
+		//		Log.d(TAG, "open url = "+url);
 		List<MtBookUtil> list = new ArrayList<MtBookUtil>();
-		mHtmlUrl = url;
-		parser();
+		parser(url);
 		NodeFilter filter = new HasAttributeFilter("class", "tutui");
 		try {
 			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
@@ -112,7 +100,7 @@ public class MtParser {
 					MtBookUtil bl = new MtBookUtil();
 					for (int j =0; j < d.getChildren().size(); j++){
 						if(d.getChildren().elementAt(j).getText().contains("tutuiImg")){
-							Log.d(TAG, "image html = "+d.getChildren().elementAt(j).toHtml());
+							//							Log.d(TAG, "image html = "+d.getChildren().elementAt(j).toHtml());
 							NodeList d2 = d.getChildren().elementAt(j).getChildren();
 							while(!(d2.elementAt(0) instanceof ImageTag)){
 								d2 = d2.elementAt(0).getChildren();
@@ -121,7 +109,7 @@ public class MtParser {
 							ImageTag img = (ImageTag)d2.elementAt(0);
 							bl.imageUrl = img.getImageURL();
 						} else if(d.getChildren().elementAt(j).getText().contains("tutuiTitle")){
-							Log.d(TAG, "title html = "+d.getChildren().elementAt(j).toHtml());
+							//							Log.d(TAG, "title html = "+d.getChildren().elementAt(j).toHtml());
 							NodeList d2 = d.getChildren().elementAt(j).getChildren();
 							for(Node d3 : d2.toNodeArray()){
 								if( d3 instanceof HeadingTag){
@@ -150,5 +138,77 @@ public class MtParser {
 		}
 
 		return list;
+	}
+
+	public MtBookDetail getBookDetail(String url){
+		MtBookDetail mbd = new MtBookDetail();
+		parser(url);
+
+		NodeFilter filter = new HasAttributeFilter("class", "content");
+		try {
+			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
+			if(nodes.size() == 0){
+				return null;
+			}
+			NodeList n = nodes.elementAt(0).getChildren();
+			for(Node d : n.toNodeArray()){
+				if(d.getChildren() == null){
+					continue;
+				}
+				for (int j =0; j < d.getChildren().size(); j++){
+					String divClass = d.getChildren().elementAt(j).getText();
+					if(divClass.contains("movieInfo")){
+						NodeList d2 = d.getChildren().elementAt(j).getChildren();
+						for(Node d3 : d2.toNodeArray()){
+							if(d3.getText().contains("moviePic")){
+								ImageTag img = (ImageTag)d3.getFirstChild();
+								mbd.imageUrl = img.getImageURL();
+								Log.d(TAG, "mbd.imageUrl = "+mbd.imageUrl);
+							} else if(d3.getText().contains("movieDetail")){
+								int size = d3.getChildren().size();
+								for(int num = 0; num <size; num++){
+									if(d3.getChildren().elementAt(num) instanceof ParagraphTag){
+										mbd.bookDetail += d3.getChildren().elementAt(num).toPlainTextString();
+										if(num != size - 1){
+											mbd.bookDetail += "\n";
+										}
+									}
+								}
+
+								Log.d(TAG, "mbd.bookDetail = "+mbd.bookDetail);
+							}
+						}
+					} else if(divClass.contains("movieIntro")){
+						NodeList d2 = d.getChildren().elementAt(j).getChildren();
+						for(Node d3 : d2.toNodeArray()){
+							if(d3 instanceof ParagraphTag){
+								mbd.bookAbout = d3.toPlainTextString();
+								Log.d(TAG, "mbd.bookAbout = "+mbd.bookAbout);
+							}
+						}
+					} else if(divClass.contains("book_listtext")){
+						int num = 0;
+						NodeList d2 = d.getChildren().elementAt(j).getChildren();
+						for(Node d3 : d2.toNodeArray()){
+							if(d3.getChildren() == null){
+								continue;
+							}
+							if(d3.getFirstChild() instanceof LinkTag){
+								LinkTag d4 = (LinkTag) d3.getFirstChild();
+								LinkTagSet link = new LinkTagSet(d4.getLink(), d4.toPlainTextString());
+								Log.d(TAG, "Bullet link = "+link.getLink() + "plaint text = "+link.getPlainTextString());
+								mbd.bookChapters.put(""+num++, link);
+							}
+						}
+					}
+				}
+			}
+
+		} catch (ParserException e) {
+			Log.e(TAG, "getBookList ParserException");
+			e.printStackTrace();
+		}
+
+		return mbd;
 	}
 }

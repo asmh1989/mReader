@@ -7,4 +7,8 @@ public class MtBookUtil {
 	public String bookAuthor;
 	public String bookUrl;
 	public String bookAbout;
+	
+	public String getLink(){
+		return bookUrl;
+	}
 }

@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import com.sun.mybookreader.html.LinkTagSet;
 import com.sun.mybookreader.mt.MtBookCategoryAdapter;
+import com.sun.mybookreader.mt.MtBookDetail;
 import com.sun.mybookreader.mt.MtBookListAdapter;
 import com.sun.mybookreader.mt.MtBookUtil;
 import com.sun.mybookreader.mt.MtParser;
@@ -44,32 +45,11 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	private static final int SHOW_BOOK_CATOERY = 1;
 	private static final int SHOW_BOOK_LIST = 2;
 	private static final int SHOW_PROGRESS = 99;
+	
+	private int mShow = SHOW_BOOK_CATOERY;
 
 	private List<LinkTagSet> mBookCategory =  new ArrayList<LinkTagSet>();
 	private List<MtBookUtil> mBookList =  new ArrayList<MtBookUtil>();
-
-	private Handler mHandler=new Handler(){
-		@Override
-		public void handleMessage(Message msg){
-			switch(msg.what){
-			case SHOW_BOOK_CATOERY:
-				MtBookCategoryAdapter adpater = new MtBookCategoryAdapter(MainActivity.this, mBookCategory);
-				mListView.setAdapter(adpater);
-				//				mBtn.setVisibility(View.GONE);
-				mProgressDialog.dismiss();
-				break;
-			case SHOW_BOOK_LIST:
-				MtBookListAdapter adapter = new MtBookListAdapter(MainActivity.this, mBookList);
-				mListView.setAdapter(adapter);
-				mProgressDialog.dismiss();
-				break;
-			case SHOW_PROGRESS:
-				mProgressDialog.setMessage(" Loading...");
-				mProgressDialog.show();
-				break;
-			}
-		}
-	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -93,21 +73,6 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		mListView = (ListView) findViewById(R.id.list);
 		mListView.setOnItemClickListener(this);
 	} 
-
-
-	public static byte[] readStream(InputStream inputStream) throws Exception {
-		byte[] buffer = new byte[1024];
-		int len = -1;
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-		while ((len = inputStream.read(buffer)) != -1) {
-			byteArrayOutputStream.write(buffer, 0, len);
-		}
-
-		inputStream.close();
-		byteArrayOutputStream.close();
-		return byteArrayOutputStream.toByteArray();
-	}
 
 	public String GetHtml(String urlpath) throws Exception {
 		Log.d(TAG,"GetHtml  : "+urlpath);
@@ -192,7 +157,12 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 		mProgressDialog.setMessage(" Loading...");
 		mProgressDialog.show();
-		new GetMtBookListTask().execute(MtUtils.MT_URL2+ mBookCategory.get(arg2).getLink());
+		if(mShow == SHOW_BOOK_CATOERY){
+			new GetMtBookListTask().execute(MtUtils.MT_URL2+ mBookCategory.get(arg2).getLink());
+			mShow = SHOW_BOOK_LIST;
+		} else if( mShow == SHOW_BOOK_LIST){
+			new GetMtBookDetailTask().execute(MtUtils.MT_URL2+ mBookList.get(arg2).getLink());
+		}
 		//		Toast.makeText(mContext, mBookCategory.get(arg2).getPlainTextString(), Toast.LENGTH_SHORT).show();
 	}
 
@@ -233,6 +203,44 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		protected void onCancelled () {//在ui线程执行  
 			mProgressDialog.setProgress(0);//进度条复位  
 		}  
+	}  
+	
+	class GetMtBookDetailTask extends AsyncTask<String,Integer,MtBookDetail> {
 
+		@Override  
+		protected MtBookDetail doInBackground(String... params) { 
+			publishProgress(0); 
+			try {
+				MtBookDetail mBookList = mParser.getBookDetail(GetHtml(params[0]));
+				publishProgress(100);  
+				return mBookList; 
+			} catch (Exception e) {
+				e.printStackTrace();
+//				Log.d(TAG, e.getMessage());
+				return null;
+			}
+		}  
+
+		protected void onProgressUpdate(Integer... progress) {//在调用publishProgress之后被调用，在ui线程执行  
+			mProgressDialog.setProgress(progress[0]);//更新进度条的进度  
+		}  
+
+		protected void onPostExecute(MtBookDetail result) {//后台任务执行完之后被调用，在ui线程执行  
+			if(result != null) {  
+//				MtBookListAdapter adpater = new MtBookListAdapter(MainActivity.this, result);
+//				mListView.setAdapter(adpater);
+				mProgressDialog.dismiss();
+			} else {
+				Toast.makeText(mContext, "ERROR!!", Toast.LENGTH_SHORT).show();
+			}
+		}  
+
+		protected void onPreExecute () {//在 doInBackground(Params...)之前被调用，在ui线程执行  
+			mProgressDialog.setProgress(0);//进度条复位  
+		}  
+
+		protected void onCancelled () {//在ui线程执行  
+			mProgressDialog.setProgress(0);//进度条复位  
+		}  
 	}  
 }

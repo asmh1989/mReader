@@ -1,7 +1,6 @@
 package com.sun.mybookreader;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -14,10 +13,9 @@ import org.apache.http.util.EncodingUtils;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
@@ -44,7 +42,6 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	MtParser mParser;
 	private static final int SHOW_BOOK_CATOERY = 1;
 	private static final int SHOW_BOOK_LIST = 2;
-	private static final int SHOW_PROGRESS = 99;
 	
 	private int mShow = SHOW_BOOK_CATOERY;
 
@@ -85,12 +82,12 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			InputStream inputStream = conn.getInputStream();
 			String html = "";
 
-			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "GB2312"));
+			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "GBK"));
 
 			String line = "";
 			try {
 				while ((line = br.readLine()) != null) {
-					line=EncodingUtils.getString(line.getBytes(), "utf-8");//然后再对源码转换成想要的编码就行，这个可有可无，平台会按照默认编码读数据。
+					line=EncodingUtils.getString(line.getBytes(), "UTF-8");//然后再对源码转换成想要的编码就行，这个可有可无，平台会按照默认编码读数据。
 					html += line;
 				}
 			} catch (Exception e) {
@@ -108,7 +105,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		protected List<LinkTagSet> doInBackground(String... params) { 
 			publishProgress(0); 
 			try {
-				mParser = new MtParser(GetHtml(MtUtils.MT_URL2));
+				mParser = new MtParser(MtUtils.MT_URL);
 				publishProgress(50);  
 				mBookCategory = mParser.getBookCategory();
 				publishProgress(100);  
@@ -158,10 +155,10 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		mProgressDialog.setMessage(" Loading...");
 		mProgressDialog.show();
 		if(mShow == SHOW_BOOK_CATOERY){
-			new GetMtBookListTask().execute(MtUtils.MT_URL2+ mBookCategory.get(arg2).getLink());
+			new GetMtBookListTask().execute(mBookCategory.get(arg2).getLink());
 			mShow = SHOW_BOOK_LIST;
 		} else if( mShow == SHOW_BOOK_LIST){
-			new GetMtBookDetailTask().execute(MtUtils.MT_URL2+ mBookList.get(arg2).getLink());
+			new GetMtBookDetailTask().execute(mBookList.get(arg2).getLink());
 		}
 		//		Toast.makeText(mContext, mBookCategory.get(arg2).getPlainTextString(), Toast.LENGTH_SHORT).show();
 	}
@@ -172,7 +169,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		protected List<MtBookUtil> doInBackground(String... params) { 
 			publishProgress(0); 
 			try {
-				mBookList = mParser.getBookList(GetHtml(params[0]));
+				mBookList = mParser.getBookList(params[0]);
 				publishProgress(100);  
 				return mBookList; 
 			} catch (Exception e) {
@@ -211,7 +208,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		protected MtBookDetail doInBackground(String... params) { 
 			publishProgress(0); 
 			try {
-				MtBookDetail mBookList = mParser.getBookDetail(GetHtml(params[0]));
+				MtBookDetail mBookList = mParser.getBookDetail(params[0]);
 				publishProgress(100);  
 				return mBookList; 
 			} catch (Exception e) {
@@ -227,9 +224,10 @@ public class MainActivity extends Activity implements OnItemClickListener {
 
 		protected void onPostExecute(MtBookDetail result) {//后台任务执行完之后被调用，在ui线程执行  
 			if(result != null) {  
-//				MtBookListAdapter adpater = new MtBookListAdapter(MainActivity.this, result);
-//				mListView.setAdapter(adpater);
 				mProgressDialog.dismiss();
+				Intent i = new Intent(MainActivity.this, BookDetailActivity.class);
+				i.putExtra("detail", result);
+				startActivity(i);
 			} else {
 				Toast.makeText(mContext, "ERROR!!", Toast.LENGTH_SHORT).show();
 			}

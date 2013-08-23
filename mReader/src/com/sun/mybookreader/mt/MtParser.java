@@ -211,4 +211,27 @@ public class MtParser {
 
 		return mbd;
 	}
+
+	public String getBookChapterContent(String url) {
+		String str = "";
+		parser(url);
+		NodeFilter filter = new HasAttributeFilter("id", "booktext");
+		try {
+			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
+			if(nodes.size() == 0){
+				return null;
+			}
+			NodeList n = nodes.elementAt(0).getChildren();
+			for(Node d : n.toNodeArray()){
+				if(d instanceof ParagraphTag){
+					str = d.toPlainTextString();
+				}
+			}
+		} catch (ParserException e) {
+			Log.e(TAG, "getBookChapterContent ："+e.toString());
+			e.printStackTrace();
+		}
+		Log.e(TAG, "getBookChapterContent ：\n"+str);
+		return str;
+	}
 }

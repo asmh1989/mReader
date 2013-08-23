@@ -1,6 +1,12 @@
 package com.sun.mybookreader.html;
 
-public class LinkTagSet {
+import java.io.Serializable;
+
+public class LinkTagSet implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5347372036903222029L;
 	private String link;
 	private String plaintText;
 	

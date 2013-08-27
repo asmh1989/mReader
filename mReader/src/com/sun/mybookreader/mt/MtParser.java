@@ -19,21 +19,22 @@ import com.sun.mybookreader.html.LinkTagSet;
 import com.sun.mybookreader.utils.Log;
 
 public class MtParser {
-	private static final String TAG = "MtParser";
+	private static final String TAG = "SUNMtParser";
 
 	private String mHtmlUrl;
 	private Parser mParser;
 
 	public MtParser() {
-		parser(MtUtils.MT_URL);
+		
 	}
 
 	public MtParser(String url){
 		parser(url);
 	}
 
-	public void parser(){
+	private void parser(){
 		try {
+			mParser =  null;
 			mParser = new Parser(mHtmlUrl);
 		} catch (ParserException e) {	
 			e.printStackTrace();
@@ -46,9 +47,10 @@ public class MtParser {
 		parser();
 	}
 
-	public List<LinkTagSet> getBookCategory(){
+	public List<LinkTagSet> getBookCategory(String url){
 		//		Log.d(TAG, "start getBookCategory "+mParser);
 		List<LinkTagSet> list  = new ArrayList<LinkTagSet>();
+		parser(url);
 		NodeFilter filter = new HasAttributeFilter("class", "mainnav_list");
 
 		//		try {
@@ -107,7 +109,7 @@ public class MtParser {
 							}
 
 							ImageTag img = (ImageTag)d2.elementAt(0);
-							bl.imageUrl = img.getImageURL();
+							bl.setImageUrl(img.getImageURL());
 						} else if(d.getChildren().elementAt(j).getText().contains("tutuiTitle")){
 							//							Log.d(TAG, "title html = "+d.getChildren().elementAt(j).toHtml());
 							NodeList d2 = d.getChildren().elementAt(j).getChildren();
@@ -117,12 +119,12 @@ public class MtParser {
 									String Tag = d4.getTagName();
 									if("H1".equals(Tag)){
 										LinkTag link = (LinkTag)d4.getChildren().elementAt(0);
-										bl.bookUrl = link.getLink();
-										bl.bookName = link.toPlainTextString();
+										bl.setBookUrl(link.getLink());
+										bl.setBookName(link.toPlainTextString());
 									} else if("H2".equals(Tag)){
-										bl.bookAuthor = d4.getChildren().elementAt(0).toPlainTextString();
+										bl.setBookAuthor(d4.getChildren().elementAt(0).toPlainTextString());
 									} else if("H3".equals(Tag)){
-										bl.bookAbout = d3.getLastChild().toPlainTextString();
+										bl.setBookAbout(d3.getLastChild().toPlainTextString());
 									}
 								}
 							}
@@ -141,9 +143,10 @@ public class MtParser {
 	}
 
 	public MtBookDetail getBookDetail(String url){
-		MtBookDetail mbd = new MtBookDetail();
+		Log.d(TAG, ".......getBookDetail.... url = "+url);
 		parser(url);
-
+		Log.d(TAG, ".......getBookDetail....");
+		MtBookDetail mbd = new MtBookDetail();
 		NodeFilter filter = new HasAttributeFilter("class", "content");
 		try {
 			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
@@ -195,9 +198,15 @@ public class MtParser {
 							}
 							if(d3.getFirstChild() instanceof LinkTag){
 								LinkTag d4 = (LinkTag) d3.getFirstChild();
-								LinkTagSet link = new LinkTagSet(d4.getLink(), d4.toPlainTextString());
-								Log.d(TAG, "Bullet link = "+link.getLink() + "plaint text = "+link.getPlainTextString());
-								mbd.bookChapters.put(""+num++, link);
+
+								BookChapter ch = new BookChapter();
+								String name = d4.toPlainTextString();
+								name = name.contains("/") ? name.substring(0, name.indexOf("/")) : name;
+								Log.d(TAG,  "plaint text = "+name +" ## Bullet link = "+d4.getLink());
+								ch.setBookChapter(d4.toPlainTextString());
+								ch.setBookChapterUrl(d4.getLink());
+								ch.setIsDownload(false);
+								mbd.bookChapters.add(ch);
 							}
 						}
 					}

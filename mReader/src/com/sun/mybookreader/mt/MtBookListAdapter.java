@@ -60,10 +60,10 @@ public class MtBookListAdapter extends BaseAdapter {
 		MtBookUtil mt = mList.get(position);
 		
 		
-		name.setText(mt.bookName+"\n"+mt.bookAuthor+"\n"+mt.bookAbout);
+		name.setText(mt.getBookName()+"\n"+mt.getBookAuthor()+"\n"+mt.getBookAbout());
 		
-		Log.d(TAG, "getimageurl = "+mt.imageUrl+" bookname = "+mt.bookName);
-		mImageLoader.DisplayImage(mt.imageUrl,image);
+		Log.d(TAG, "getimageurl = "+mt.getImageUrl()+" bookname = "+mt.getBookName());
+		mImageLoader.DisplayImage(mt.getImageUrl(),image);
 		
 		return convertView;
 	}

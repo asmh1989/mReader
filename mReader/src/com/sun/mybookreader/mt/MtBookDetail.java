@@ -1,17 +1,14 @@
 package com.sun.mybookreader.mt;
 
-import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import com.sun.mybookreader.html.LinkTagSet;
 
-public class MtBookDetail implements Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class MtBookDetail{
 	public String imageUrl;
 	public String bookDetail="";
 	public String bookAbout;
-	public HashMap<String, LinkTagSet> bookChapters = new HashMap<String, LinkTagSet>();
+	public List<BookChapter> bookChapters = new ArrayList<BookChapter>();
 }

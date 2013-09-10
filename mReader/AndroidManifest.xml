@@ -7,19 +7,19 @@
     <uses-sdk
         android:minSdkVersion="8"
         android:targetSdkVersion="17" />
-    
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
-    <uses-permission android:name = "android.permission.WRITE_EXTERNAL_STORAGE"/> 
-    
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
+        android:name="com.sun.mybookreader.utils.GlobalContext"
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/mreader"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" 
-        android:name="com.sun.mybookreader.utils.GlobalContext">
+        android:theme="@style/AppTheme" >
         <activity
-            android:name="com.sun.mybookreader.MainActivity"
+            android:name="com.sun.mybookreader.activity.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,10 +27,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
-        <activity android:name=".BookDetailActivity" />
-        <activity android:name=".BookCategoryActivity" />
-        <activity android:name=".BookListActivity" />
+        <activity android:name="com.sun.mybookreader.activity.BookDetailActivity" />
+        <activity android:name="com.sun.mybookreader.activity.BookCategoryActivity" />
+        <activity android:name="com.sun.mybookreader.activity.BookListActivity" />
+
+        <provider
+            android:name="com.sun.mreader.provider.BookProvider"
+            android:authorities="com.sun.mreader" >
+        </provider>
     </application>
 
 </manifest>

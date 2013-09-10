@@ -25,6 +25,7 @@ public class BookChaptersDBTask {
 	}
 
 	public static void addBookChapters(List<BookChapter> chapters) {
+		
 		for(BookChapter chapter : chapters){
 			ContentValues cv = new ContentValues();
 			cv.put(BookChaptersTable._ID, chapter.get_ID());
@@ -33,7 +34,7 @@ public class BookChaptersDBTask {
 			cv.put(BookChaptersTable.BOOK_CHAPTER_URL, chapter.getBookChapterUrl());
 			cv.put(BookChaptersTable.BOOK_CHAPTER_DOWNLOAD, chapter.getIsDownload());
 
-			Cursor c = getWsd().query(BookChaptersTable.TABLE_NAME, null, BookChaptersTable.BOOK_ID + "=?",
+			Cursor c = getWsd().query(BookChaptersTable.TABLE_NAME, null, BookChaptersTable._ID + "=?",
 					new String[]{chapter.getBookID()}, null, null, null);
 
 			if (c != null && c.getCount() > 0) {

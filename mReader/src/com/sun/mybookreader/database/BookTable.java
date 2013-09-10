@@ -2,7 +2,7 @@ package com.sun.mybookreader.database;
 
 public class BookTable {
 	public static final String TABLE_NAME = "book_detail";
-	public static final String BOOK_ID = "id";
+	public static final String BOOK_ID = "_id";
 	public static final String BOOK_NAME = "name";
 	public static final String BOOK_AUTHOR = "author";
 	public static final String BOOK_URL = "book_url";

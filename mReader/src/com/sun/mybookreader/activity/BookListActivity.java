@@ -1,8 +1,9 @@
-package com.sun.mybookreader;
+package com.sun.mybookreader.activity;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.mybookreader.R;
 import com.sun.mybookreader.mt.MtBookListAdapter;
 import com.sun.mybookreader.mt.MtBookUtil;
 import com.sun.mybookreader.mt.MtParser;
@@ -22,7 +23,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class BookListActivity extends Activity implements OnItemClickListener {
+public class BookListActivity extends BaseActivity implements OnItemClickListener {
 	private final String TAG = "SUNBookListActivity";
 	private ListView mListView;
 	private Context mContext;
@@ -48,14 +49,6 @@ public class BookListActivity extends Activity implements OnItemClickListener {
 			finish();
 		}
 	} 
-
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
 
 
 	@Override

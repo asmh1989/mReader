@@ -25,7 +25,7 @@ public class MtParser {
 	private Parser mParser;
 
 	public MtParser() {
-		
+
 	}
 
 	public MtParser(String url){
@@ -145,9 +145,20 @@ public class MtParser {
 	public MtBookDetail getBookDetail(String url){
 		Log.d(TAG, ".......getBookDetail.... url = "+url);
 		parser(url);
-		Log.d(TAG, ".......getBookDetail....");
 		MtBookDetail mbd = new MtBookDetail();
-		NodeFilter filter = new HasAttributeFilter("class", "content");
+
+		NodeFilter filter = new HasAttributeFilter("class", "navigation");
+		try {
+			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
+			String str = nodes.elementAt(0).toPlainTextString();
+			mbd.bookName = str.split(";")[str.split(";").length - 1];
+			Log.d(TAG, "get book name = "+mbd.bookName);
+		} catch (ParserException e) {
+			Log.e(TAG, "getBookList ParserException");
+			e.printStackTrace();
+		}
+		mParser.reset();
+		filter = new HasAttributeFilter("class", "content");
 		try {
 			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
 			if(nodes.size() == 0){
@@ -171,7 +182,21 @@ public class MtParser {
 								int size = d3.getChildren().size();
 								for(int num = 0; num <size; num++){
 									if(d3.getChildren().elementAt(num) instanceof ParagraphTag){
-										mbd.bookDetail += d3.getChildren().elementAt(num).toPlainTextString();
+										String s = d3.getChildren().elementAt(num).toPlainTextString();
+										mbd.bookDetail += s;
+										Log.d(TAG, "s = "+s);
+										if(s.contains("作者:")){
+											mbd.bookAuthor = s.split(":")[1];
+											Log.d(TAG, "mbd.bookAuthor  = "+mbd.bookAuthor);
+										} else if(s.contains("状态:")){
+											if(!s.contains("连载")){
+												mbd.isFinish = true;
+											}
+										} else if(s.contains("更新时间:")){
+											mbd.bookUpdateTime = s.substring(s.indexOf(":")+1);
+											Log.d(TAG, "mbd.bookUpdateTime = "+mbd.bookUpdateTime);
+										}
+
 										if(num != size - 1){
 											mbd.bookDetail += "\n";
 										}
@@ -190,7 +215,6 @@ public class MtParser {
 							}
 						}
 					} else if(divClass.contains("book_listtext")){
-						int num = 0;
 						NodeList d2 = d.getChildren().elementAt(j).getChildren();
 						for(Node d3 : d2.toNodeArray()){
 							if(d3.getChildren() == null){
@@ -202,7 +226,7 @@ public class MtParser {
 								BookChapter ch = new BookChapter();
 								String name = d4.toPlainTextString();
 								name = name.contains("/") ? name.substring(0, name.indexOf("/")) : name;
-								Log.d(TAG,  "plaint text = "+name +" ## Bullet link = "+d4.getLink());
+//								Log.d(TAG,  "plaint text = "+name +" ## Bullet link = "+d4.getLink());
 								ch.setBookChapter(d4.toPlainTextString());
 								ch.setBookChapterUrl(d4.getLink());
 								ch.setIsDownload(false);
@@ -232,12 +256,14 @@ public class MtParser {
 			}
 			NodeList n = nodes.elementAt(0).getChildren();
 			for(Node d : n.toNodeArray()){
-				if(d instanceof ParagraphTag){
-					str = d.toPlainTextString();
+				if(d.toPlainTextString().length() > 0){
+					str += d.toPlainTextString()+'\n';
 				}
 			}
+
+			//			str = nodes.elementAt(0).toPlainTextString();
 		} catch (ParserException e) {
-			Log.e(TAG, "getBookChapterContent ："+e.toString());
+			//			Log.e(TAG, "getBookChapterContent ："+e.toString());
 			e.printStackTrace();
 		}
 		Log.e(TAG, "getBookChapterContent ：\n"+str);

@@ -5,11 +5,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import com.sun.mybookreader.mt.MtBookUtil;
-
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
+
+import com.sun.mybookreader.mt.MtBookUtil;
 
 public class BookDBTask {
 	private BookDBTask() {
@@ -36,6 +37,7 @@ public class BookDBTask {
 		cv.put(BookTable.BOOK_IMAGE_URL, book.getImageUrl());
 		cv.put(BookTable.BOOK_CHAPTERS, book.getBookChapters());
 		cv.put(BookTable.BOOK_IS_FINISH, book.getBookIsFinish());
+		cv.put(BookTable.BOOK_UPDATE_TIME, book.getBookUpdateTime());
 
 		Cursor c = getWsd().query(BookTable.TABLE_NAME, null, BookTable.BOOK_ID + "=?",
 				new String[]{book.getBookID()}, null, null, null);
@@ -111,5 +113,10 @@ public class BookDBTask {
         }
 
         return getBookList();
+    }
+    
+    public static Cursor query(String [] projection){
+		return  getRsd().query(BookTable.TABLE_NAME, projection, null,
+				null, null, null, null);
     }
 }

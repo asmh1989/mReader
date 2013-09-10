@@ -8,7 +8,7 @@ public class BookChapter {
 	private boolean is_download;
 	
 	public String get_ID() {
-		return (book_id+book_chapter).hashCode()+"";
+		return book_chapter_url.hashCode()+"";
 	}
 	
 	public String getBookID(){

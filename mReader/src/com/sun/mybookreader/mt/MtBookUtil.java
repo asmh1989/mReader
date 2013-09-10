@@ -11,7 +11,7 @@ public class MtBookUtil {
 	private String bookUpdateTime;
 	
 	public String getBookID(){
-		return ("MT_"+bookName).hashCode() +"";
+		return bookUrl.hashCode() +"";
 	}
 	
 	public String getBookName(){

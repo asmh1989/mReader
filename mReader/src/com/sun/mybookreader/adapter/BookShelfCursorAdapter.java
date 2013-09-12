@@ -31,15 +31,43 @@ public class BookShelfCursorAdapter extends CursorAdapter {
 
 	@Override
 	public void bindView(View view, Context context, Cursor cursor) {
-		ImageView image = (ImageView) view.findViewById(R.id.image);
-		TextView txt = (TextView) view.findViewById(R.id.text);
+		ImageView image = (ImageView) view.findViewById(R.id.image1);
+		ImageView image2 = (ImageView) view.findViewById(R.id.image2);
+		ImageView image3 = (ImageView) view.findViewById(R.id.image3);
+//		TextView txt = (TextView) view.findViewById(R.id.text);
 		
-		String imageurl = cursor.getString(cursor.getColumnIndex(BookTable.BOOK_IMAGE_URL));
-		String bookname = cursor.getString(cursor.getColumnIndex(BookTable.BOOK_NAME));
+		int i = 0;
+		while(i == 0 || cursor.moveToNext()){
+			String imageurl = cursor.getString(cursor.getColumnIndex(BookTable.BOOK_IMAGE_URL));
+			String bookname = cursor.getString(cursor.getColumnIndex(BookTable.BOOK_NAME));
+			ImageView v = null;
+			switch (i++) {
+			case 0:
+				v = image;
+				break;
+			case 1:
+				v = image2;
+				break;
+			case 2:
+				v = image3;
+				break;
+			default:
+				v = image;
+				break;
+			}
+			new ImageLoader(mContext).DisplayImage(imageurl, v);
+		}
 		
-		txt.setText(bookname);
+		if(i == 1){
+			image2.setVisibility(View.INVISIBLE);
+			image3.setVisibility(View.INVISIBLE);
+		} else {
+			image3.setVisibility(View.INVISIBLE);
+		}
 		
-		new ImageLoader(mContext).DisplayImage(imageurl, image);
+//		txt.setText(bookname);
+		
+
 	}
 	
 }

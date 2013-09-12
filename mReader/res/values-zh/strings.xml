@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">mReader</string>
+    <string name="online_book">在线书城</string>
+    <string name="update">更新</string>
+    <string name="update_all">全部更新</string>
+    <string name="download">下载</string>
+    <string name="download_all">全部下载</string>
+    <string name="edit_bookshelf">编辑</string>
+    <string name="book_web">打开书页</string>
+    <string name="book_delete">删除</string>
+    <string name="loading">奋力加载中...</string>
+    <string name="load_finish">没有更多内容了</string>
+</resources>

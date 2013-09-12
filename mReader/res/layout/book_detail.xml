@@ -21,8 +21,7 @@
                 android:layout_width="120dip"
                 android:layout_height="120dip"
                 android:layout_gravity="center"
-                android:contentDescription="@string/hello_world"
-                android:src="@drawable/rihanna" />
+                android:contentDescription="@string/hello_world"/>
         </LinearLayout>
 
         <TextView

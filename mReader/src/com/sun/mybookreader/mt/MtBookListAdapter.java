@@ -29,6 +29,10 @@ public class MtBookListAdapter extends BaseAdapter {
 		mImageLoader = new ImageLoader(mContext);
 	}
 	
+	public void updateData(List<MtBookUtil> m){
+		mList = m;
+	}
+	
 	@Override
 	public int getCount() {
 		if(mList == null){

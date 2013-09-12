@@ -45,7 +45,8 @@ public class ImageLoader {
 			imageView.setImageBitmap(bitmap);
 		else {
 			queuePhoto(url, imageView);
-			imageView.setImageResource(stub_id);
+//			imageView.setImageResource(stub_id);
+			imageView.setBackgroundColor(0);
 		}
 	}
 

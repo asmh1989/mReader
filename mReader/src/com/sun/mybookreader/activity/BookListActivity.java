@@ -3,25 +3,31 @@ package com.sun.mybookreader.activity;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.mybookreader.R;
-import com.sun.mybookreader.mt.MtBookListAdapter;
-import com.sun.mybookreader.mt.MtBookUtil;
-import com.sun.mybookreader.mt.MtParser;
-import com.sun.mybookreader.utils.GlobalContext;
-import com.sun.mybookreader.utils.Log;
+import org.htmlparser.tags.TableHeader;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.Menu;
+import android.os.Handler;
+import android.os.Message;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.sun.mybookreader.R;
+import com.sun.mybookreader.mt.MtBookListAdapter;
+import com.sun.mybookreader.mt.MtBookUtil;
+import com.sun.mybookreader.utils.GlobalContext;
+import com.sun.mybookreader.utils.Log;
 
 public class BookListActivity extends BaseActivity implements OnItemClickListener {
 	private final String TAG = "SUNBookListActivity";
@@ -29,6 +35,35 @@ public class BookListActivity extends BaseActivity implements OnItemClickListene
 	private Context mContext;
 	private ProgressDialog mProgressDialog;
 	private List<MtBookUtil> mBookList =  new ArrayList<MtBookUtil>();
+	private ProgressBar mListFooterProgressBar;
+	private TextView mListFooterMessage;
+	private MtBookListAdapter mMtBookListAdapter;
+
+	private final int LOAD_NEXT_BOOKLIST = 0;
+	private final int LOAD_FINISH = 1;
+	private boolean mIsLoading = false;
+
+	private Handler mHandler = new Handler(){
+
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case LOAD_NEXT_BOOKLIST:
+				mMtBookListAdapter.updateData(mBookList);
+				mMtBookListAdapter.notifyDataSetChanged();
+				mIsLoading = false;
+				break;
+			case LOAD_FINISH:
+				mListFooterProgressBar.setVisibility(View.GONE);
+				mListFooterMessage.setText(R.string.load_finish);
+				break;
+			default:
+				break;
+			}
+			super.handleMessage(msg);
+		}
+
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +72,7 @@ public class BookListActivity extends BaseActivity implements OnItemClickListene
 		mContext = this;
 		mListView = (ListView) findViewById(R.id.list);
 		mListView.setOnItemClickListener(this);
+
 		String open = getIntent().getStringExtra("url");
 		if(open != null){
 			Log.d(TAG, "open url = "+open);
@@ -48,7 +84,56 @@ public class BookListActivity extends BaseActivity implements OnItemClickListene
 		} else {
 			finish();
 		}
+
+		initListFooter();
+
+		mListView.setOnScrollListener(new OnScrollListener() {
+
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+				// 当不滚动时
+				if (scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
+					//判断是否滚动到底部
+					if (view.getLastVisiblePosition() == view.getCount() - 1) {
+						if(!mIsLoading){
+							if(GlobalContext.getparser().hasNextBookUrl()){
+								new Thread(
+										new Runnable() {
+											@Override
+											public void run() {
+												mIsLoading = true;
+
+												String open = GlobalContext.getparser().getNextBookUrl();
+												List<MtBookUtil> booklist = GlobalContext.getparser().getBookList(open);
+												mBookList.addAll(booklist);
+												Log.d("SUNMM", "found more book size = "+mBookList.size());
+												mHandler.sendEmptyMessage(LOAD_NEXT_BOOKLIST);
+
+											}
+										}).start();
+							} else {
+								mHandler.sendEmptyMessage(LOAD_FINISH);
+							}
+						}
+					}
+				}
+			}
+
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem,
+					int visibleItemCount, int totalItemCount) {
+
+			}
+		});
 	} 
+
+
+	private void initListFooter() {
+		View v = LayoutInflater.from(this).inflate(R.layout.book_list_footer, null);
+		mListFooterProgressBar = (ProgressBar)v.findViewById(R.id.progressbar);
+		mListFooterMessage = (TextView) v.findViewById(R.id.message);
+		mListView.addFooterView(v);
+	}
 
 
 	@Override
@@ -69,7 +154,7 @@ public class BookListActivity extends BaseActivity implements OnItemClickListene
 				return mBookList; 
 			} catch (Exception e) {
 				e.printStackTrace();
-//				Log.d(TAG, e.getMessage());
+				//				Log.d(TAG, e.getMessage());
 				return null;
 			}
 		}  
@@ -80,8 +165,8 @@ public class BookListActivity extends BaseActivity implements OnItemClickListene
 
 		protected void onPostExecute(List<MtBookUtil> result) {//后台任务执行完之后被调用，在ui线程执行  
 			if(result != null) {  
-				MtBookListAdapter adpater = new MtBookListAdapter(mContext, result);
-				mListView.setAdapter(adpater);
+				mMtBookListAdapter = new MtBookListAdapter(mContext, result);
+				mListView.setAdapter(mMtBookListAdapter);
 				mProgressDialog.dismiss();
 			} else {
 				Toast.makeText(mContext, "ERROR!!", Toast.LENGTH_SHORT).show();

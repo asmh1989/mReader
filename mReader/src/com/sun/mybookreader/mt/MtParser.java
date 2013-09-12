@@ -23,6 +23,8 @@ public class MtParser {
 
 	private String mHtmlUrl;
 	private Parser mParser;
+	private static String mNextBookListUrl;
+	private static boolean mhasNextBookListUrl;
 
 	public MtParser() {
 
@@ -88,11 +90,53 @@ public class MtParser {
 		return list;
 	}
 
+	public String getNextBookUrl(){
+		return mNextBookListUrl;
+	}
+	
+	public boolean hasNextBookUrl(){
+		return mhasNextBookListUrl;
+	}
+	
 	public List<MtBookUtil> getBookList(String url){
 		//		Log.d(TAG, "open url = "+url);
 		List<MtBookUtil> list = new ArrayList<MtBookUtil>();
 		parser(url);
-		NodeFilter filter = new HasAttributeFilter("class", "tutui");
+		
+		NodeFilter filter = new HasAttributeFilter("class", "list_page");
+		try {
+			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
+			nodes = nodes.elementAt(0).getChildren();
+			for(int i = 0; i < nodes.size(); i++){
+				Node n = nodes.elementAt(i);
+				if(n instanceof LinkTag){
+					LinkTag l = (LinkTag)n;
+					Log.d(TAG, "print = "+n.toPlainTextString()+" link = "+l.getLink());
+					if(l.toPlainTextString().contains("下一页")){
+						mNextBookListUrl = l.getLink();
+					} else if(l.toPlainTextString().contains("尾页")){
+						if(url.contains(mNextBookListUrl.trim())){
+							mhasNextBookListUrl = false;
+						} else {
+							mhasNextBookListUrl = true;
+						}
+					}
+				} else {
+					if(n.toPlainTextString().contains("下一页")){
+						mhasNextBookListUrl = false;
+					}
+				}
+			}
+			
+			
+		} catch (ParserException e) {
+			Log.e(TAG, "getBookList ParserException");
+			e.printStackTrace();
+		}
+		
+		mParser.reset();
+		
+		filter = new HasAttributeFilter("class", "tutui");
 		try {
 			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
 			for(int i = 0; i < nodes.size(); i++){
@@ -154,7 +198,7 @@ public class MtParser {
 			mbd.bookName = str.split(";")[str.split(";").length - 1];
 			Log.d(TAG, "get book name = "+mbd.bookName);
 		} catch (ParserException e) {
-			Log.e(TAG, "getBookList ParserException");
+			Log.e(TAG, "getBookDetail ParserException");
 			e.printStackTrace();
 		}
 		mParser.reset();

@@ -232,7 +232,7 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 					bc.add(b);
 				}
 				
-				BookChaptersDBTask.addBookChapters(bc);
+//				BookChaptersDBTask.addBookChapters(bc);
 				
 			} catch (Exception e) {
 				e.printStackTrace();

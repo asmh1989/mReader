@@ -1032,7 +1032,6 @@ public class ViewDragHelper {
 
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
-            	Log.d("SUNMM", "shouldInterceptTouchEvent ACTION_DOWN:" + mDragState);
                 final float x = ev.getX();
                 final float y = ev.getY();
                 final int pointerId = MotionEventCompat.getPointerId(ev, 0);
@@ -1054,7 +1053,6 @@ public class ViewDragHelper {
 
             case MotionEventCompat.ACTION_POINTER_DOWN: {
 //            	if(true)            	return true;
-            	Log.d("SUNMM", "shouldInterceptTouchEvent ACTION_POINTER_DOWN:" + mDragState);
                 final int pointerId = MotionEventCompat.getPointerId(ev, actionIndex);
                 final float x = MotionEventCompat.getX(ev, actionIndex);
                 final float y = MotionEventCompat.getY(ev, actionIndex);
@@ -1145,7 +1143,6 @@ public class ViewDragHelper {
 
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
-            	Log.d("SUNMM", "processTouchEvent ontouch ...MotionEvent.ACTION_DOWN:");
                 final float x = ev.getX();
                 final float y = ev.getY();
                 final int pointerId = MotionEventCompat.getPointerId(ev, 0);
@@ -1159,7 +1156,6 @@ public class ViewDragHelper {
                 tryCaptureViewForDrag(toCapture, pointerId);
 
                 final int edgesTouched = mInitialEdgesTouched[pointerId];
-                Log.d(TAG, "DOWN : x = " +x +" poniterID = "+pointerId+ " edgesTouched = "+edgesTouched+" mTrackingEdges = "+mTrackingEdges);
                 if ((edgesTouched & mTrackingEdges) != 0) {
                     mCallback.onEdgeTouched(edgesTouched & mTrackingEdges, pointerId);
                 }

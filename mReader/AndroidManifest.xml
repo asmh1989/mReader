@@ -36,6 +36,8 @@
             android:name="com.sun.mreader.provider.BookProvider"
             android:authorities="com.sun.mreader" >
         </provider>
+        
+        <service android:name="com.sun.mreader.service.BookService" />
     </application>
 
 </manifest>

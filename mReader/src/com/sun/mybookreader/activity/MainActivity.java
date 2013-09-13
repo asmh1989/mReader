@@ -16,20 +16,16 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.ContextMenu;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
-import android.widget.Toast;
 import android.widget.FrameLayout.LayoutParams;
 
 import com.actionbarsherlock.view.MenuItem;
+import com.sun.mreader.service.BookService;
 import com.sun.mybookreader.R;
 import com.sun.mybookreader.adapter.BookShelfAdapter;
 import com.sun.mybookreader.adapter.BookShelfAdapter.OnOpenMenuListener;
@@ -87,6 +83,13 @@ public class MainActivity extends BaseActivity {
 		});
 		mListView.setAdapter(mBookShelfAdapter);
 
+		initPopMenu();
+		
+		Intent tsintent = new Intent(MainActivity.this,BookService.class);
+		startService(tsintent);
+	} 
+
+	private void initPopMenu() {
 		ListView list = new ListView(this);
 		list.setAdapter(new MenuPopAdapter(this));
 
@@ -122,9 +125,8 @@ public class MainActivity extends BaseActivity {
 
 				menuPop.dismiss();
 			}
-		});
-
-	} 
+		});		
+	}
 
 	public String GetHtml(String urlpath) throws Exception {
 		Log.d(TAG,"GetHtml  : "+urlpath);

@@ -1,15 +1,11 @@
 
 package com.sun.swipebacklayout.lib.app;
 
-import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.sun.swipebacklayout.lib.SwipeBackLayout;
 
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 
 public class SwipeBackActivity extends SherlockFragmentActivity{

@@ -9,6 +9,7 @@ public class MtBookUtil {
 	private int bookChapters;
 	private boolean bookIsFinish;
 	private String bookUpdateTime;
+	private String bookAddTime;
 	
 	public String getBookID(){
 		return bookUrl.hashCode() +"";

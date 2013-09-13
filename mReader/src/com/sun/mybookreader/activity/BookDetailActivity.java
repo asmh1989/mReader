@@ -39,7 +39,7 @@ import com.sun.mybookreader.utils.Log;
 
 public class BookDetailActivity extends BaseActivity implements OnItemClickListener {
 	private static final String TAG = "SUNBookDetailActivity";
-	
+
 	private ImageView mImage;
 	private Button mBtnAddBook;
 	private TextView mTxtBookContent;
@@ -48,13 +48,15 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 	private Context mContext;
 	private String mBookUrl;
 	MtBookDetail mbd;
-	
+
+	private static final int ONE_ADD_CHAPTERS = 100;
+
 	private ProgressDialog mProgressDialog;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		setContentView(R.layout.book_detail);
 		mContext = this;
 		mProgressDialog = new ProgressDialog(this);
@@ -64,10 +66,10 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 		mTxtBookAbout = (TextView) findViewById(R.id.about);
 		mTxtBookContent = (TextView) findViewById(R.id.content);
 		mList = (ListView) findViewById(R.id.list);
-		
+
 
 		mBtnAddBook.setOnClickListener(new View.OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				mProgressDialog.setMessage(" Adding Book...");
@@ -75,11 +77,11 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 				new AddBookTask().execute("");
 			}
 		});
-		
-		
-		
+
+
+
 		mList.setOnItemClickListener(this);
-		
+
 		mBookUrl = getIntent().getStringExtra("url");
 		if(mBookUrl != null){
 			Log.d(TAG, "open url = "+mBookUrl);
@@ -89,9 +91,9 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 		} else {
 			finish();
 		}
-		
+
 	}
-	
+
 	public void setListViewHeightBasedOnChildren(ListView listView) {
 		ListAdapter listAdapter = listView.getAdapter();
 		if (listAdapter == null) {
@@ -111,7 +113,7 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 		((MarginLayoutParams) params).setMargins(10, 10, 10, 10);
 		listView.setLayoutParams(params);
 	}
-	
+
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -121,7 +123,7 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 	protected void onResume() {
 		super.onResume();
 	}
-	
+
 	class GetMtBookDetailTask extends AsyncTask<String,Integer,MtBookDetail> {
 
 		@Override  
@@ -148,7 +150,13 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 				mTxtBookContent.setText(mbd.bookDetail);
 				MtBookChapterAdapater adapter = new MtBookChapterAdapater(mContext, mbd.bookChapters);
 				mList.setAdapter(adapter);
-//				setListViewHeightBasedOnChildren(mList);
+				if(BookDBTask.getBook(mBookUrl.hashCode()+"") != null){
+					mBtnAddBook.setText(R.string.already_in_bookshelf);
+					mBtnAddBook.setEnabled(false);
+				} else {
+					Log.d("SUNMM", "book is not in shelf bookID= "+mBookUrl.hashCode());
+				}
+				//				setListViewHeightBasedOnChildren(mList);
 				mProgressDialog.dismiss();
 			} else {
 				Toast.makeText(mContext, "ERROR!!", Toast.LENGTH_SHORT).show();
@@ -163,7 +171,7 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 			mProgressDialog.setProgress(0);//进度条复位  
 		}  
 	}  
-	
+
 
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
@@ -172,7 +180,7 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 		mProgressDialog.show();
 		new GetMtBookChapterContentTask().execute(mbd.bookChapters.get(arg2).getBookChapterUrl());
 	}
-	
+
 	class GetMtBookChapterContentTask extends AsyncTask<String,Integer,String> {
 
 		@Override  
@@ -208,7 +216,7 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 			mProgressDialog.setProgress(0);//进度条复位  
 		}  
 	}  
-	
+
 	class AddBookTask extends AsyncTask<String,Integer,String> {
 
 		@Override  
@@ -225,14 +233,32 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 				mt.setBookUpdateTime(mbd.bookUpdateTime);
 				mt.setBookAuthor(mbd.bookAuthor);
 				BookDBTask.addOrUpdateBook(mt);
-				
+
 				List<BookChapter> bc = new ArrayList<BookChapter>();
+				List<BookChapter> bc2 = new ArrayList<BookChapter>();
+				int i = 0;
 				for(BookChapter b : mbd.bookChapters){
 					b.setBookID(Integer.parseInt(mt.getBookID()));
-					bc.add(b);
+					if(i > ONE_ADD_CHAPTERS){
+						bc2.add(b);
+					} else {
+						bc.add(b);
+					}
+					i++;
 				}
+
+				BookChaptersDBTask.addBookChapters(bc);
 				
-//				BookChaptersDBTask.addBookChapters(bc);
+				if(i > ONE_ADD_CHAPTERS){
+					final List<BookChapter> bc3 = bc2;
+					new Thread(new Runnable() {
+
+						@Override
+						public void run() {
+							BookChaptersDBTask.addBookChapters(bc3);
+						}
+					}).start();
+				}
 				
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -248,8 +274,10 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 		protected void onPostExecute(String result) {//后台任务执行完之后被调用，在ui线程执行  
 			if(result.equals("successed")) {  
 				mProgressDialog.dismiss();
+				mBtnAddBook.setText(R.string.already_in_bookshelf);
+				mBtnAddBook.setEnabled(false);
 			} else {
-				Toast.makeText(BookDetailActivity.this, "ERROR!!", Toast.LENGTH_SHORT).show();
+				Toast.makeText(BookDetailActivity.this, "ERROR!! NetWork", Toast.LENGTH_SHORT).show();
 			}
 		}  
 

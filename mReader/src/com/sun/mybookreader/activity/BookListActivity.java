@@ -96,17 +96,20 @@ public class BookListActivity extends BaseActivity implements OnItemClickListene
 					//判断是否滚动到底部
 					if (view.getLastVisiblePosition() == view.getCount() - 1) {
 						if(!mIsLoading){
+							Log.d("SUNMM", "start load more data.... view.getLastVisiblePosition() = "+view.getLastVisiblePosition()
+									+"");
 							if(GlobalContext.getparser().hasNextBookUrl()){
 								new Thread(
 										new Runnable() {
 											@Override
 											public void run() {
 												mIsLoading = true;
-
 												String open = GlobalContext.getparser().getNextBookUrl();
 												List<MtBookUtil> booklist = GlobalContext.getparser().getBookList(open);
-												mBookList.addAll(booklist);
-												Log.d("SUNMM", "found more book size = "+mBookList.size());
+												for(MtBookUtil mt : booklist){
+													mBookList.add(mt);
+												}
+//												Log.d("SUNMM", "found more book size = "+mBookList.size());
 												mHandler.sendEmptyMessage(LOAD_NEXT_BOOKLIST);
 
 											}

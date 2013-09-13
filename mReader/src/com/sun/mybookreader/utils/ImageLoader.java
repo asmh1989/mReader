@@ -1,5 +1,6 @@
 package com.sun.mybookreader.utils;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,6 +21,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.widget.ImageView;
 
 
@@ -30,10 +32,12 @@ public class ImageLoader {
 	private Map<ImageView, String> imageViews = Collections
 			.synchronizedMap(new WeakHashMap<ImageView, String>());
 	ExecutorService executorService;
+	private Context mContext;
 
 	public ImageLoader(Context context) {
 		fileCache = new FileCache(context);
-		executorService = Executors.newFixedThreadPool(5);
+		executorService = Executors.newFixedThreadPool(10);
+		mContext = context;
 	}
 
 	final int stub_id = R.drawable.no_image;
@@ -44,8 +48,16 @@ public class ImageLoader {
 		if (bitmap != null)
 			imageView.setImageBitmap(bitmap);
 		else {
+			File f = fileCache.getFile(url);
+			Bitmap b = decodeFile(f);
+			
+			if (b != null){
+				imageView.setImageBitmap(b);
+				return;
+			}
+			
 			queuePhoto(url, imageView);
-//			imageView.setImageResource(stub_id);
+			//			imageView.setImageResource(stub_id);
 			imageView.setBackgroundColor(0);
 		}
 	}
@@ -69,20 +81,75 @@ public class ImageLoader {
 			URL imageUrl = new URL(url);
 			HttpURLConnection conn = (HttpURLConnection) imageUrl
 					.openConnection();
-			conn.setConnectTimeout(30000);
-			conn.setReadTimeout(30000);
+			conn.setConnectTimeout(10000);
+			conn.setReadTimeout(10000);
 			conn.setInstanceFollowRedirects(true);
 			InputStream is = conn.getInputStream();
 			OutputStream os = new FileOutputStream(f);
 			Utils.CopyStream(is, os);
 			os.close();
-			bitmap = decodeFile(f);
+//			bitmap = decodeFile(f);
+			bitmap = safeDecodeStream(Uri.fromFile(f), 200, 250);
 			return bitmap;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			return null;
 		}
 	}
+	
+	/** 
+	 * A safer decodeStream method 
+	 * rather than the one of {@link BitmapFactory} 
+	 * which will be easy to get OutOfMemory Exception 
+	 * while loading a big image file. 
+	 *  
+	 * @param uri 
+	 * @param width 
+	 * @param height 
+	 * @return 
+	 * @throws FileNotFoundException 
+	 */  
+	protected Bitmap safeDecodeStream(Uri uri, int width, int height)  
+			throws FileNotFoundException{  
+		int scale = 1;  
+		BitmapFactory.Options options = new BitmapFactory.Options();  
+		android.content.ContentResolver resolver = mContext.getContentResolver();  
+
+		if(width>0 || height>0){  
+			// Decode image size without loading all data into memory  
+			options.inJustDecodeBounds = true;  
+			BitmapFactory.decodeStream(  
+					new BufferedInputStream(resolver.openInputStream(uri), 16*1024),  
+					null,  
+					options);  
+
+			int w = options.outWidth;  
+			int h = options.outHeight;  
+//			int len = 100*mContext.getResources().getDisplayMetrics().density;
+//			if(w > len){
+//				width = len;
+//				height = (int)(h * 1.0 * len / w);
+//			}
+			while (true) {  
+				if ((width>0 && w/2 < width)  
+						|| (height>0 && h/2 < height)){  
+					break;  
+				}  
+				w /= 2;  
+				h /= 2;  
+				scale *= 2;  
+			}  
+		}  
+
+		// Decode with inSampleSize option  
+		options.inJustDecodeBounds = false;  
+		options.inSampleSize = scale;  
+		return BitmapFactory.decodeStream(  
+				new BufferedInputStream(resolver.openInputStream(uri), 16*1024),   
+				null,   
+				options);  
+	}
+	
 
 	// 解码图像用来减少内存消耗
 	private Bitmap decodeFile(File f) {
@@ -93,7 +160,7 @@ public class ImageLoader {
 			BitmapFactory.decodeStream(new FileInputStream(f), null, o);
 
 			// 找到正确的刻度值，它应该是2的幂。
-			final int REQUIRED_SIZE = 70;
+			final int REQUIRED_SIZE = 100;
 			int width_tmp = o.outWidth, height_tmp = o.outHeight;
 			int scale = 1;
 			while (true) {
@@ -167,8 +234,10 @@ public class ImageLoader {
 				return;
 			if (bitmap != null)
 				photoToLoad.imageView.setImageBitmap(bitmap);
-			else
-				photoToLoad.imageView.setImageResource(stub_id);
+			else {
+//				photoToLoad.imageView.setImageResource(stub_id);
+				photoToLoad.imageView.setBackgroundColor(0);
+			}
 		}
 	}
 

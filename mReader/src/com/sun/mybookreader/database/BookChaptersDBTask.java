@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.sun.mybookreader.mt.BookChapter;
+import com.sun.mybookreader.utils.Log;
 
 public class BookChaptersDBTask {
 	private BookChaptersDBTask() {
@@ -44,6 +45,7 @@ public class BookChaptersDBTask {
 				getWsd().insert(BookChaptersTable.TABLE_NAME,
 						BookChaptersTable._ID, cv);
 			}
+			Log.d("SUNMM", "add chacpter name = "+chapter.getBookChapter());
 		}
 	}
 

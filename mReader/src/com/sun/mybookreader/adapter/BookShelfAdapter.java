@@ -24,7 +24,7 @@ public class BookShelfAdapter extends BaseAdapter implements OnTouchListener {
 	private List<MtBookUtil> mBookUtil;
 	private int positionX;
 	private int positionY;
-	
+
 
 	private OnOpenMenuListener mOnOpenMenuListener;
 	private ImageLoader mImageLoader;
@@ -80,6 +80,22 @@ public class BookShelfAdapter extends BaseAdapter implements OnTouchListener {
 		int i = 0;
 		int which =  position * 3;
 		int length = mBookUtil.size();
+
+		switch ((length - which) % 3) {
+		case 0:
+			image.setVisibility(View.INVISIBLE);
+			image2.setVisibility(View.INVISIBLE);
+			image3.setVisibility(View.INVISIBLE);
+			break;
+		case 1:
+			image2.setVisibility(View.INVISIBLE);
+			image3.setVisibility(View.INVISIBLE);
+			break;
+		case 2:
+			image3.setVisibility(View.INVISIBLE);
+			break;
+		}
+		
 		while( i < 3 && which < length){
 			MtBookUtil mt = mBookUtil.get(which++);
 			String imageurl = mt.getImageUrl();
@@ -97,19 +113,17 @@ public class BookShelfAdapter extends BaseAdapter implements OnTouchListener {
 			v.setVisibility(View.VISIBLE);
 			i++;
 		}
-		
-//		Log.d("SUNMM", "i = "+i +" which = "+which+" length = "+length);
-		
-		if(i == 1){
-			image2.setVisibility(View.INVISIBLE);
-			image3.setVisibility(View.INVISIBLE);
-		} else if(i == 2) {
-			image3.setVisibility(View.INVISIBLE);
-		} else if(i == 0){
-			image.setVisibility(View.INVISIBLE);
-			image2.setVisibility(View.INVISIBLE);
-			image3.setVisibility(View.INVISIBLE);
-		}
+
+		//		Log.d("SUNMM", "i = "+i +" which = "+which+" length = "+length);
+		//		
+		//		if(i == 1){
+		//
+		//		} else if(i == 2) {
+		//
+		//		} else if(i == 0){
+		//
+		//		}
+
 		return convertView;
 	}
 

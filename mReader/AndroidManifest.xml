@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.sun.mybookreader"
+    package="com.sun.mreader"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -14,13 +14,13 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
-        android:name="com.sun.mybookreader.utils.GlobalContext"
+        android:name="com.sun.mreader.utils.GlobalContext"
         android:allowBackup="true"
         android:icon="@drawable/mreader"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.sun.mybookreader.activity.MainActivity"
+            android:name="com.sun.mreader.activity.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,9 +28,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.sun.mybookreader.activity.BookDetailActivity" />
-        <activity android:name="com.sun.mybookreader.activity.BookCategoryActivity" />
-        <activity android:name="com.sun.mybookreader.activity.BookListActivity" />
+        <activity android:name="com.sun.mreader.activity.BookDetailActivity" />
+        <activity android:name="com.sun.mreader.activity.BookCategoryActivity" />
+        <activity android:name="com.sun.mreader.activity.BookListActivity" />
 
         <provider
             android:name="com.sun.mreader.provider.BookProvider"

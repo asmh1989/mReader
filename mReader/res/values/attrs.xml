@@ -1,12 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <declare-styleable name="SwipeBackLayout">
-        <attr name="EdgeSize" format="dimension"/>
-        <attr name="EdgeFlag" format="enum"/>
-        <attr name="ShadowLeft" format="reference"/>
-        <attr name="ShadowRight" format="reference"/>
-        <attr name="ShadowBottom" format="reference"/>
+        <attr name="EdgeSize" format="dimension" />
+        <attr name="EdgeFlag" format="enum" />
+        <attr name="ShadowLeft" format="reference" />
+        <attr name="ShadowRight" format="reference" />
+        <attr name="ShadowBottom" format="reference" />
     </declare-styleable>
 
-    <attr name="SwipeBackLayoutStyle" format="reference"/>
+    <attr name="SwipeBackLayoutStyle" format="reference" />
+
+    <declare-styleable name="ShelfLayer">
+        <attr name="shelfLayerAdvertiseHeight" format="dimension" />
+        <attr name="shelfLayerHeadHeight" format="dimension" />
+        <attr name="shelfLayerLeft" format="reference" />
+        <attr name="shelfLayerCenter" format="reference" />
+        <attr name="shelfLayerRight" format="reference" />
+    </declare-styleable>
+
 </resources>

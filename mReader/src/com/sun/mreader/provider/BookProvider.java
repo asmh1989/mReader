@@ -2,7 +2,7 @@ package com.sun.mreader.provider;
 
 import java.util.HashMap;
 
-import com.sun.mybookreader.database.DatabaseHelper;
+import com.sun.mreader.database.DatabaseHelper;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;

@@ -1,7 +1,7 @@
 
 package com.sun.swipebacklayout.lib;
 
-import com.sun.mybookreader.R;
+import com.sun.mreader.R;
 
 import android.app.Activity;
 import android.content.Context;

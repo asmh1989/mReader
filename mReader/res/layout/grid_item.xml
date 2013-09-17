@@ -1,34 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal" >
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="14dip"
+    android:paddingTop="14dip" >
 
-    <FrameLayout
-        android:layout_width="100dip"
-        android:layout_height="100dip" >
+    <com.sun.mreader.ui.RecyclingImageView
+        android:id="@id/image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
 
-        <ImageView
-            android:id="@id/image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_gravity="bottom|center"
-            android:layout_marginBottom="16.0dip"
-            android:scaleType="fitEnd" />
+    <ImageView
+        android:id="@+id/choice_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/books_management"
+        android:visibility="gone" />
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@drawable/books_management" />
+    <ProgressBar
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="76dip"
+        android:layout_height="12dip"
+        android:layout_gravity="center" 
+        android:visibility="gone"
+        android:max="100"
+        android:id="@+id/show_bar">"
+    </ProgressBar>
 
-        <ProgressBar
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="80dip"
-            android:layout_height="12dip"
-            android:layout_gravity="center" >
-        </ProgressBar>
-    </FrameLayout>
-
-</LinearLayout>
+</FrameLayout>

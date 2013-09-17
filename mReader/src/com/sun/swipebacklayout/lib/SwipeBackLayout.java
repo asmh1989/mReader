@@ -284,7 +284,6 @@ public class SwipeBackLayout extends FrameLayout {
 
         int left = 0, top = 0;
         
-        Log.d("SUNMM", "need open mScrollToFinishAniamtion ... "+mScrollToFinishAniamtion);
         if(!mScrollToFinishAniamtion){
         	return;
         }

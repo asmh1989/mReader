@@ -93,16 +93,16 @@ public class MtParser {
 	public String getNextBookUrl(){
 		return mNextBookListUrl;
 	}
-	
+
 	public boolean hasNextBookUrl(){
 		return mhasNextBookListUrl;
 	}
-	
+
 	public List<MtBookUtil> getBookList(String url){
 		//		Log.d(TAG, "open url = "+url);
 		List<MtBookUtil> list = new ArrayList<MtBookUtil>();
 		parser(url);
-		
+
 		NodeFilter filter = new HasAttributeFilter("class", "list_page");
 		try {
 			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
@@ -127,15 +127,15 @@ public class MtParser {
 					}
 				}
 			}
-			
-			
+
+
 		} catch (ParserException e) {
 			Log.e(TAG, "getBookList ParserException");
 			e.printStackTrace();
 		}
-		
+
 		mParser.reset();
-		
+
 		filter = new HasAttributeFilter("class", "tutui");
 		try {
 			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
@@ -246,7 +246,6 @@ public class MtParser {
 										}
 									}
 								}
-
 								Log.d(TAG, "mbd.bookDetail = "+mbd.bookDetail);
 							}
 						}
@@ -270,7 +269,7 @@ public class MtParser {
 								BookChapter ch = new BookChapter();
 								String name = d4.toPlainTextString();
 								name = name.contains("/") ? name.substring(0, name.indexOf("/")) : name;
-//								Log.d(TAG,  "plaint text = "+name +" ## Bullet link = "+d4.getLink());
+								//								Log.d(TAG,  "plaint text = "+name +" ## Bullet link = "+d4.getLink());
 								ch.setBookChapter(d4.toPlainTextString());
 								ch.setBookChapterUrl(d4.getLink());
 								ch.setIsDownload(false);
@@ -283,6 +282,44 @@ public class MtParser {
 
 		} catch (ParserException e) {
 			Log.e(TAG, "getBookList ParserException");
+			e.printStackTrace();
+		}
+
+		return mbd;
+	}
+
+	public List<BookChapter> getBookChapters(String url){
+		parser(url);
+		List<BookChapter> mbd = new ArrayList<BookChapter>();
+
+		NodeFilter filter = new HasAttributeFilter("class", "book_listtext");
+		try {
+			NodeList nodes = mParser.extractAllNodesThatMatch(filter);
+			if(nodes.size() == 0){
+				return null;
+			}
+			NodeList n = nodes.elementAt(0).getChildren();
+
+			for(Node d3 : n.toNodeArray()){
+				if(d3.getChildren() == null){
+					continue;
+				}
+				if(d3.getFirstChild() instanceof LinkTag){
+					LinkTag d4 = (LinkTag) d3.getFirstChild();
+
+					BookChapter ch = new BookChapter();
+					String name = d4.toPlainTextString();
+					name = name.contains("/") ? name.substring(0, name.indexOf("/")) : name;
+					//								Log.d(TAG,  "plaint text = "+name +" ## Bullet link = "+d4.getLink());
+					ch.setBookChapter(name);
+					ch.setBookChapterUrl(d4.getLink());
+					ch.setIsDownload(false);
+					mbd.add(ch);
+				}
+			}
+
+		} catch (ParserException e) {
+			Log.e(TAG, "getBookChapters ParserException");
 			e.printStackTrace();
 		}
 

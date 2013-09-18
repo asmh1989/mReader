@@ -28,28 +28,31 @@ public class BookChaptersDBTask {
 	public static void addBookChapters(List<BookChapter> chapters) {
 		
 		for(BookChapter chapter : chapters){
-			ContentValues cv = new ContentValues();
-			cv.put(BookChaptersTable._ID, chapter.get_ID());
-			cv.put(BookChaptersTable.BOOK_ID, chapter.getBookID());
-			cv.put(BookChaptersTable.BOOK_CHAPTER, chapter.getBookChapter());
-			cv.put(BookChaptersTable.BOOK_CHAPTER_URL, chapter.getBookChapterUrl());
-			cv.put(BookChaptersTable.BOOK_CHAPTER_DOWNLOAD, chapter.getIsDownload());
+			addBookChapter(chapter);
+		}
+	}
+	
+	public static void addBookChapter(BookChapter chapter){
+		ContentValues cv = new ContentValues();
+		cv.put(BookChaptersTable._ID, chapter.get_ID());
+		cv.put(BookChaptersTable.BOOK_ID, chapter.getBookID());
+		cv.put(BookChaptersTable.BOOK_CHAPTER, chapter.getBookChapter());
+		cv.put(BookChaptersTable.BOOK_CHAPTER_URL, chapter.getBookChapterUrl());
+		cv.put(BookChaptersTable.BOOK_CHAPTER_DOWNLOAD, chapter.getIsDownload());
 
-			Cursor c = getWsd().query(BookChaptersTable.TABLE_NAME, null, BookChaptersTable._ID + "=?",
-					new String[]{chapter.getBookID()}, null, null, null);
+		Cursor c = getWsd().query(BookChaptersTable.TABLE_NAME, null, BookChaptersTable._ID + "=?",
+				new String[]{chapter.getBookID()}, null, null, null);
 
-			if (c != null && c.getCount() > 0) {
-				String[] args = {chapter.getBookID()};
-				getWsd().update(BookChaptersTable.TABLE_NAME, cv, BookChaptersTable.BOOK_ID + "=?", args);
-			} else {
-				getWsd().insert(BookChaptersTable.TABLE_NAME,
-						BookChaptersTable._ID, cv);
-			}
-//			Log.d("SUNMM", "add chacpter name = "+chapter.getBookChapter());
+		if (c != null && c.getCount() > 0) {
+			String[] args = {chapter.getBookID()};
+			getWsd().update(BookChaptersTable.TABLE_NAME, cv, BookChaptersTable.BOOK_ID + "=?", args);
+		} else {
+			getWsd().insert(BookChaptersTable.TABLE_NAME,
+					BookChaptersTable._ID, cv);
 		}
 	}
 
-	public static List<BookChapter> getBookList(String bookid) {
+	public static List<BookChapter> getBookChapters(String bookid) {
 		List<BookChapter> chapters = new ArrayList<BookChapter>();
 		String sql = "select * from " + BookChaptersTable.TABLE_NAME+" where " + BookChaptersTable.BOOK_ID + " = " + bookid;;
 		Cursor c = getRsd().rawQuery(sql, null);

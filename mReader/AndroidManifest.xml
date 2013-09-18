@@ -23,8 +23,7 @@
         <activity
             android:name="com.sun.mreader.activity.MainActivity"
             android:label="@string/app_name"
-            android:screenOrientation="user"
-            android:uiOptions="splitActionBarWhenNarrow" >
+            android:screenOrientation="user">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

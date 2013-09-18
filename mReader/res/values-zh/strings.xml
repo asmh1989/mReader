@@ -15,4 +15,5 @@
     <string name="addbook">加入书架</string>
     <string name="downloadbook">下载阅读</string>
     <string name="already_in_bookshelf">已加入书架</string>
+    <string name="all_choice">全选</string>
 </resources>

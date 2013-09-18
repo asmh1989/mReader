@@ -69,6 +69,9 @@ public class BookDBTask {
 
 			colid = c.getColumnIndex(BookTable.BOOK_URL);
 			book.setBookUrl(c.getString(colid));
+			
+			colid = c.getColumnIndex(BookTable.BOOK_CHAPTERS);
+			book.setBookChapters(Integer.parseInt(c.getString(colid)));
 
 			bookList.add(book);
 		}

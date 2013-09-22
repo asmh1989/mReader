@@ -10,6 +10,7 @@ public class MtBookUtil {
 	private boolean bookIsFinish;
 	private String bookUpdateTime;
 	private String bookAddTime;
+	private String bookLastRead;
 	
 	public String getBookID(){
 		return bookUrl.hashCode() +"";
@@ -77,5 +78,21 @@ public class MtBookUtil {
 	
 	public void setBookUpdateTime(String time){
 		bookUpdateTime = time;
+	}
+	
+	public void setBookAddTime(String time){
+		bookAddTime = time;
+	}
+	
+	public String getAddTime(){
+		return bookAddTime;
+	}
+	
+	public void setBookLastRead(String read){
+		bookLastRead = read;
+	}
+	
+	public String getBookLastRead(){
+		return bookLastRead;
 	}
 }

@@ -309,8 +309,10 @@ public class MtParser {
 
 					BookChapter ch = new BookChapter();
 					String name = d4.toPlainTextString();
-					name = name.contains("/") ? name.substring(0, name.indexOf("/")) : name;
-					//								Log.d(TAG,  "plaint text = "+name +" ## Bullet link = "+d4.getLink());
+					if(name.contains("/")){
+						name = name.contains("/") ? name.substring(0, name.indexOf("/")) : name;
+						Log.d(TAG,  "plaint text = "+name +" ## Bullet link = "+d4.getLink());
+					}
 					ch.setBookChapter(name);
 					ch.setBookChapterUrl(d4.getLink());
 					ch.setIsDownload(false);
@@ -342,12 +344,9 @@ public class MtParser {
 				}
 			}
 
-			//			str = nodes.elementAt(0).toPlainTextString();
 		} catch (ParserException e) {
-			//			Log.e(TAG, "getBookChapterContent ："+e.toString());
 			e.printStackTrace();
 		}
-		Log.e(TAG, "getBookChapterContent ：\n"+str);
 		return str;
 	}
 }

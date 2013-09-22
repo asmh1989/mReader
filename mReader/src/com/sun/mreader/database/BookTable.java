@@ -10,5 +10,7 @@ public class BookTable {
 	public static final String BOOK_ABOUT = "book_about";
 	public static final String BOOK_UPDATE_TIME = "book_update_time";
 	public static final String BOOK_CHAPTERS = "book_chapters";
+	public static final String BOOK_LASTREAD = "book_lastread";
+	public static final String BOOK_ADD_SHELF_TIME = "book_add_shelf_time";
 	public static final String BOOK_IS_FINISH = "is_finish";
 }

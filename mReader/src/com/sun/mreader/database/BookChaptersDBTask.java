@@ -41,11 +41,27 @@ public class BookChaptersDBTask {
 		cv.put(BookChaptersTable.BOOK_CHAPTER_DOWNLOAD, chapter.getIsDownload());
 
 		Cursor c = getWsd().query(BookChaptersTable.TABLE_NAME, null, BookChaptersTable._ID + "=?",
-				new String[]{chapter.getBookID()}, null, null, null);
+				new String[]{chapter.get_ID()}, null, null, null);
 
 		if (c != null && c.getCount() > 0) {
-			String[] args = {chapter.getBookID()};
-			getWsd().update(BookChaptersTable.TABLE_NAME, cv, BookChaptersTable.BOOK_ID + "=?", args);
+			String[] args = {chapter.get_ID()};
+			getWsd().update(BookChaptersTable.TABLE_NAME, cv, BookChaptersTable._ID + "=?", args);
+		} else {
+			getWsd().insert(BookChaptersTable.TABLE_NAME,
+					BookChaptersTable._ID, cv);
+		}
+	}
+	
+	public static void updateBookChapterForDownload(BookChapter chapter) {
+		ContentValues cv = new ContentValues();
+		cv.put(BookChaptersTable.BOOK_CHAPTER_DOWNLOAD, chapter.getIsDownload());
+
+		Cursor c = getWsd().query(BookChaptersTable.TABLE_NAME, null, BookChaptersTable._ID + "=?",
+				new String[]{chapter.get_ID()}, null, null, null);
+
+		if (c != null && c.getCount() > 0) {
+			String[] args = {chapter.get_ID()};
+			getWsd().update(BookChaptersTable.TABLE_NAME, cv, BookChaptersTable._ID + "=?", args);
 		} else {
 			getWsd().insert(BookChaptersTable.TABLE_NAME,
 					BookChaptersTable._ID, cv);
@@ -54,7 +70,7 @@ public class BookChaptersDBTask {
 
 	public static List<BookChapter> getBookChapters(String bookid) {
 		List<BookChapter> chapters = new ArrayList<BookChapter>();
-		String sql = "select * from " + BookChaptersTable.TABLE_NAME+" where " + BookChaptersTable.BOOK_ID + " = " + bookid;;
+		String sql = "select * from " + BookChaptersTable.TABLE_NAME+" where " + BookChaptersTable.BOOK_ID + " = " + bookid;
 		Cursor c = getRsd().rawQuery(sql, null);
 		while (c.moveToNext()) {
 			BookChapter chapter = new BookChapter();
@@ -72,10 +88,34 @@ public class BookChaptersDBTask {
 		c.close();
 		return chapters;
 	}
+	
+	public static List<BookChapter> getBookChaptersWithoutDownload(String bookid) {
+		List<BookChapter> chapters = new ArrayList<BookChapter>();
+		String sql = "select * from " + BookChaptersTable.TABLE_NAME+" where " + BookChaptersTable.BOOK_ID + " = " + bookid + " AND "
+				+BookChaptersTable.BOOK_CHAPTER_DOWNLOAD+" = 0";
+		Cursor c = getRsd().rawQuery(sql, null);
+		while (c.moveToNext()) {
+			BookChapter chapter = new BookChapter();
+			int colid = c.getColumnIndex(BookChaptersTable.BOOK_CHAPTER);
+			chapter.setBookChapter(c.getString(colid));
+
+			colid = c.getColumnIndex(BookChaptersTable.BOOK_CHAPTER_URL);
+			chapter.setBookChapterUrl(c.getString(colid));
+
+			colid = c.getColumnIndex(BookChaptersTable.BOOK_CHAPTER_DOWNLOAD);
+			chapter.setIsDownload(Boolean.valueOf(c.getString(colid)));
+
+			chapters.add(chapter);
+		}
+		c.close();
+		return chapters;
+	}
+	
 
 	public static void deleteAllOneBookChapters(String bookid) {
 		String sql = "delete from " + BookChaptersTable.TABLE_NAME + " where " + BookChaptersTable.BOOK_ID+ " in " + "(" + bookid + ")";
 
 		getWsd().execSQL(sql);
 	}
+
 }

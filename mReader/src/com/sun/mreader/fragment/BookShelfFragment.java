@@ -1,14 +1,12 @@
 package com.sun.mreader.fragment;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -32,7 +30,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.app.SherlockFragment;
@@ -48,14 +45,11 @@ import com.sun.mreader.adapter.MenuPopAdapter;
 import com.sun.mreader.database.BookChaptersDBTask;
 import com.sun.mreader.database.BookDBTask;
 import com.sun.mreader.mt.BookChapter;
-import com.sun.mreader.mt.MtBookChapterAdapater;
-import com.sun.mreader.mt.MtBookDetail;
 import com.sun.mreader.mt.MtBookUtil;
 import com.sun.mreader.mt.MtUtils;
 import com.sun.mreader.ui.RecyclingImageView;
 import com.sun.mreader.util.ImageCache.ImageCacheParams;
 import com.sun.mreader.utils.GlobalContext;
-import com.sun.mreader.utils.ImageLoader;
 import com.sun.mreader.util.ImageFetcher;
 
 public class BookShelfFragment extends SherlockFragment implements OnItemClickListener {
@@ -78,7 +72,8 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 	private static final int UPDATE_BOOKS = 0;
 	private static final int UPDATE_BOOKS_FINISH = 1;
 	private static final int DOWNLOAD_BOOKS = 2;
-	private static final int DOWNLOAD_BOOKS_finish = 3;
+
+	private boolean mIsEditStatus = false;
 
 	private Handler mHander = new Handler(){
 
@@ -99,10 +94,6 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 				mAdapter.resetOneBar(msg.arg1);
 				mAdapter.notifyDataSetChanged();
 				break;
-			case DOWNLOAD_BOOKS:
-
-				break;
-
 			default:
 				break;
 			}
@@ -169,6 +160,12 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 			mAdapter.updateBooks(l);
 
 		} else if(item.getItemId() == R.string.download_all){
+			List<Integer> l = new ArrayList<Integer>();
+			int len = mBookUtil.size();
+			for(int i = 0; i < len; i++){
+				l.add(i);
+			}
+			mAdapter.downloadBooks(l);
 
 		} else if(item.getItemId() == R.string.edit_bookshelf){
 			((SherlockFragmentActivity)getActivity()).startActionMode(new AnActionModeOfEpicProportions());
@@ -197,7 +194,9 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 					mAdapter.updateBooks(l);
 					break;
 				case R.string.download:
-					mAdapter.downloadBooks();
+					List<Integer> l1 = new ArrayList<Integer>();
+					l1.add(mChoiceBook);
+					mAdapter.downloadBooks(l1);
 					break;
 				case R.string.book_web:
 					Intent i = new Intent(mContext, BookDetailActivity.class);
@@ -288,7 +287,7 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 		//		Log.d("SUNMM", "old size = "+mBookUtil.size());
 		mBookUtil = BookDBTask.getBookList();
 		//		Log.d("SUNMM", "new size = "+mBookUtil.size());
-		
+
 		mAdapter.notifyDataSetChanged();
 	}
 
@@ -304,6 +303,7 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 	public void onDestroy() {
 		super.onDestroy();
 		mImageFetcher.closeCache();
+		mAdapter.onDestory();
 	}
 
 	@Override
@@ -329,6 +329,7 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 		private ImageView mChoiceImg;
 		private boolean[] mChoiceNum;
 		private List<BarStatus> mShowbar = new ArrayList<BookShelfFragment.BookAdapter.BarStatus>();
+		private ShowBarThead mShowBarThead;
 
 		class BarStatus{
 			public boolean isShow = false;
@@ -342,10 +343,12 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 		@Override
 		public void notifyDataSetChanged() {
 			int len = mBookUtil.size();
-			mChoiceNum = new boolean [len];
-			for(int i = 0; i < len; i++){
-				BarStatus b = new BarStatus();
-				mShowbar.add(b);
+			if(mChoiceNum == null || len != mChoiceNum.length){
+				mChoiceNum = new boolean [len];
+				for(int i = 0; i < len; i++){
+					BarStatus b = new BarStatus();
+					mShowbar.add(b);
+				}
 			}
 			super.notifyDataSetChanged();
 		}
@@ -365,10 +368,14 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 				mActionBarHeight = TypedValue.complexToDimensionPixelSize(
 						tv.data, context.getResources().getDisplayMetrics());
 			}
+
 		}
 
 		@Override
 		public int getCount() {
+			if(mBookUtil.size() == 0){
+				return 1;
+			}
 			return mBookUtil.size() + mNumColumns;
 		}
 
@@ -437,11 +444,16 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 		 * @param b
 		 */
 		public void updateBooks(List<Integer> b) {
-			if(b != null){
-				new ShowBarThead(b, UPDATE_BOOKS).start();
-			} else {
-				new ShowBarThead(getIntArrayFromBoolean(mChoiceNum), UPDATE_BOOKS).start();
+			if(mShowBarThead != null && mShowBarThead.isAlive()){
+				mShowBarThead.interrupt();
 			}
+			if(b != null){
+				mShowBarThead = new ShowBarThead(b, UPDATE_BOOKS);
+			} else {
+				mShowBarThead = new ShowBarThead(getIntArrayFromBoolean(mChoiceNum), UPDATE_BOOKS);
+			}
+
+			mShowBarThead.start();
 
 		}
 
@@ -464,8 +476,22 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 			mShowbar.get(w).barStatus = s;
 		}
 
-		public void downloadBooks() {
+		public void downloadBooks(List<Integer> b) {
+			if(mShowBarThead != null && mShowBarThead.isAlive()){
+				mShowBarThead.interrupt();
+			}
+			if(b != null){
+				mShowBarThead = new ShowBarThead(b, DOWNLOAD_BOOKS);
+			} else {
+				mShowBarThead = new ShowBarThead(getIntArrayFromBoolean(mChoiceNum), DOWNLOAD_BOOKS);
+			}
+			mShowBarThead.start();
+		}
 
+		public void onDestory(){
+			if(mShowBarThead != null && mShowBarThead.isAlive()){
+				mShowBarThead.setExit(true);
+			}
 		}
 
 		@Override
@@ -500,6 +526,7 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 
 			if(mIsEdited){
 				mChoiceImg.setVisibility(View.VISIBLE);
+				Log.d("SUNMM", "mIsEdited == "+mChoiceNum[position]+" position = "+position);
 				if(mChoiceNum[position]){
 					mChoiceImg.setBackgroundResource(R.drawable.books_management_focus);
 				} else {
@@ -510,7 +537,7 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 			}
 
 			if(mShowbar.size() > position && mShowbar.get(position).isShow){
-				Log.d("SUNMM", "  willbe = "+mShowbar.get(position).barStatus+" pre = "+mUpdateBar.getProgress()+" position = "+position);
+				//				Log.d("SUNMM", "  willbe = "+mShowbar.get(position).barStatus+" pre = "+mUpdateBar.getProgress()+" position = "+position);
 				mUpdateBar.setProgress(mShowbar.get(position).barStatus);
 				mUpdateBar.setVisibility(View.VISIBLE);
 			} else {
@@ -520,22 +547,33 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 
 			// Finally load the image asynchronously into the ImageView, this also takes care of
 			// setting a placeholder image while the background thread runs
-			MtBookUtil mt = mBookUtil.get(position - mNumColumns);
-			mImageFetcher.loadImage(mt.getImageUrl(), imageView);
-			imageView.setOnClickListener(new MyClickListener(mt, position));
-			imageView.setOnLongClickListener(new MyLongClickListener(position));
-			imageView.setOnTouchListener(this);
-
+			if(mBookUtil.size() > 0){
+				MtBookUtil mt = mBookUtil.get(position - mNumColumns);
+				mImageFetcher.loadImage(mt.getImageUrl(), imageView);
+				imageView.setOnClickListener(new MyClickListener(mt, position));
+				imageView.setOnLongClickListener(new MyLongClickListener(position));
+				imageView.setOnTouchListener(this);
+				imageView.setVisibility(View.VISIBLE);
+			} else {
+				Log.d("SUNMM", "has no more book...");
+				imageView.setVisibility(View.INVISIBLE);
+			}
 			return convertView;
 		}
 
 		class ShowBarThead extends Thread{
 			List<Integer> bars;
 			int why;
+			boolean willBeExit = false;
 
 			public ShowBarThead(List<Integer> b, int w){
 				bars = b;
 				why = w;
+				setDaemon(true);
+			}
+
+			public void setExit(boolean b) {
+				willBeExit = true;
 			}
 
 			void  handMessage(int what, int arg1, int arg2){
@@ -547,23 +585,26 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 				mHander.sendMessageDelayed(msg, time);
 			}
 
-			private void showUpdatesBar(){
+			private void showUpdatesBar(){ 
 				for(int which : bars){
 					mShowbar.get(which).isShow = true;
 				}
 
 				for(int which : bars){
+					if(willBeExit){
+						return;
+					}
 					handMessage(UPDATE_BOOKS, which, 10);
 					List<BookChapter> mbd = GlobalContext.getparser().getBookChapters(mBookUtil.get(which).getBookUrl());
 					handMessage(UPDATE_BOOKS, which, 40);
 					int oldLen = mBookUtil.get(which).getBookChapters();
 					int newLen = mbd.size();
-					Log.d("SUNMM", "oldLen = "+ oldLen+" newLen = "+newLen+" mChoice = "+mChoiceBook);
 					if(newLen > oldLen){
 						int len = newLen - oldLen;
 						int oncePer = len * 100 / 50;
 						for(int i = oldLen; i < newLen; i++){
 							BookChapter b = mbd.get(i);
+							b.setBookID(Integer.parseInt(mBookUtil.get(which).getBookID()));
 							BookChaptersDBTask.addBookChapter(b);
 							handMessage(UPDATE_BOOKS, which, 50+ (i+1-oldLen) * oncePer);
 						}
@@ -586,6 +627,30 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 			}
 
 			private void showDownloadsBar() {
+				for(int which : bars){
+					mShowbar.get(which).isShow = true;
+				}
+
+				for(int which : bars){
+					handMessage(UPDATE_BOOKS, which, 5);
+					List<BookChapter> mbd = BookChaptersDBTask.getBookChaptersWithoutDownload(mBookUtil.get(which).getBookID());
+					handMessage(UPDATE_BOOKS, which, 20);
+
+					int len = mbd.size();
+					double oneper = 75*1.0 / len;
+					for(int i = 0; i < len; i++){
+						if(willBeExit){
+							return;
+						}
+						String content = GlobalContext.getparser().getBookChapterContent(mbd.get(i).getBookChapterUrl());
+						GlobalContext.saveContent(content, mbd.get(i).get_ID(), mBookUtil.get(which).getBookName().trim());
+						handMessage(UPDATE_BOOKS, which, (int)(20+oneper*(i+1)));	
+						mbd.get(i).setIsDownload(true);
+						BookChaptersDBTask.updateBookChapterForDownload(mbd.get(i));
+					}
+
+					handMessage(UPDATE_BOOKS, which, 100);
+				}
 
 			}
 		}
@@ -602,10 +667,12 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 
 			@Override
 			public void onClick(View v) {
-				Log.d("SUNMM", "click open book name = "+ bookUtil.getBookName().trim()+" mIsEdited = "+mIsEdited);
+				//				Log.d("SUNMM", "click open book name = "+ bookUtil.getBookName().trim()+" mIsEdited = "+mIsEdited+"mChoiceNum[pos] = "+mChoiceNum[pos]);
 				if(mIsEdited){
 					mChoiceNum[pos] = !mChoiceNum[pos];
 					notifyDataSetChanged();
+				} else {
+					
 				}
 			}
 		}
@@ -710,7 +777,7 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 				mode.finish();
 				break;
 			case R.string.download:
-				mAdapter.downloadBooks();
+				mAdapter.downloadBooks(null);
 				mode.finish();
 				break;
 			}

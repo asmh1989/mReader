@@ -1,12 +1,11 @@
 package com.sun.mreader.activity;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -14,7 +13,6 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -22,6 +20,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sun.mreader.R;
 import com.sun.mreader.database.BookChaptersDBTask;
 import com.sun.mreader.database.BookDBTask;
 import com.sun.mreader.mt.BookChapter;
@@ -32,7 +31,6 @@ import com.sun.mreader.mt.MtParser;
 import com.sun.mreader.utils.GlobalContext;
 import com.sun.mreader.utils.ImageLoader;
 import com.sun.mreader.utils.Log;
-import com.sun.mreader.R;
 
 public class BookDetailActivity extends BaseActivity implements OnItemClickListener {
 	private static final String TAG = "SUNBookDetailActivity";
@@ -226,9 +224,11 @@ public class BookDetailActivity extends BaseActivity implements OnItemClickListe
 				mt.setBookIsFinish(mbd.isFinish);
 				mt.setBookUrl(mBookUrl);
 				mt.setImageUrl(mbd.imageUrl);
-				mt.setBookName(mbd.bookName);
+				mt.setBookName(mbd.bookName.trim());
 				mt.setBookUpdateTime(mbd.bookUpdateTime);
 				mt.setBookAuthor(mbd.bookAuthor);
+				mt.setBookAddTime(System.currentTimeMillis()+"");
+				mt.setBookLastRead("0");
 				BookDBTask.addOrUpdateBook(mt);
 
 				List<BookChapter> bc = new ArrayList<BookChapter>();

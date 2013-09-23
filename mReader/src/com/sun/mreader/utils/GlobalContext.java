@@ -1,6 +1,7 @@
 package com.sun.mreader.utils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,6 +19,8 @@ public class GlobalContext extends Application {
 	public static final String SAVEPATH = "mReader";
 	public static final String SAVEPATH_IMAGE = "images";
 	public static final String SAVEPATH_BOOKS = "books";
+
+	public static final String ACTION_BOOK_READER = "com.sun.mreader.view";
 
 
 	@Override
@@ -52,8 +55,12 @@ public class GlobalContext extends Application {
 
 		return cacheDir;
 	}
+	
+	public static String getPath(){
+		return createPath(SAVEPATH_BOOKS).getAbsolutePath();
+	}
 
-	private static File createFile(String Path){
+	public static File createFile(String Path){
 		File root = createPath(SAVEPATH_BOOKS);
 		String [] p = Path.split("/");
 		int len = p.length;
@@ -72,7 +79,6 @@ public class GlobalContext extends Application {
 				}
 			}
 		}
-		Log.d(TAG, "create file ="+root.getPath());
 		return root;
 	}
 

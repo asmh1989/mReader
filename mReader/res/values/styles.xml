@@ -2,18 +2,19 @@
 
     <!--
         Base application theme, dependent on API level. This theme is replaced
-        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
     <style name="AppBaseTheme" parent="android:Theme.Light">
         <!--
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
-            backward-compatibility can go here.
+            backward-compatibility can go here.
         -->
     </style>
 
     <!-- Application theme. -->
     <style name="AppTheme" parent="@style/Sherlock.__Theme.DarkActionBar">
+
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
         <item name="android:windowIsTranslucent">true</item>
     </style>
@@ -23,6 +24,48 @@
         <item name="ShadowLeft">@drawable/shadow_left</item>
         <item name="ShadowRight">@drawable/shadow_right</item>
         <item name="ShadowBottom">@drawable/shadow_bottom</item>
+    </style>
+
+    <style name="bab_button">
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">10.0dip</item>
+        <item name="android:clickable">true</item>
+        <item name="android:layout_width">0.0dip</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1.0</item>
+    </style>
+
+    <style name="bab_button_text">
+        <item name="android:textSize">@dimen/text_size_s</item>
+        <item name="android:textColor">#ffffffff</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:lineSpacingMultiplier">1.0</item>
+        <item name="android:alpha">0.8</item>
+    </style>
+
+    <style name="ReaderTheme" parent="@style/Theme.Sherlock.Light.DarkActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:actionBarStyle">@style/Dark_ActionBar</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:homeAsUpIndicator">@drawable/ic_ab_back</item>
+        <item name="android:actionBarItemBackground">@drawable/ab_selectable_bg</item>
+        <item name="actionBarStyle">@style/Dark_ActionBar</item>
+        <item name="actionBarItemBackground">@drawable/ab_selectable_bg</item>
+        <item name="homeAsUpIndicator">@drawable/ic_ab_back</item>
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowActionBarOverlay">true</item>
+    </style>
+
+    <style name="Dark_ActionBar" parent="@style/Widget.Sherlock.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@drawable/dark_ab_bg</item>
+        <item name="android:displayOptions">homeAsUp|showTitle</item>
+        <item name="background">@drawable/dark_ab_bg</item>
+        <item name="displayOptions">homeAsUp|showTitle</item>
     </style>
 
 </resources>

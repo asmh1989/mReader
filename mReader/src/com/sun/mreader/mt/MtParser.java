@@ -132,6 +132,8 @@ public class MtParser {
 		} catch (ParserException e) {
 			Log.e(TAG, "getBookList ParserException");
 			e.printStackTrace();
+		}  catch (Exception e){
+			e.printStackTrace();
 		}
 
 		mParser.reset();
@@ -181,6 +183,8 @@ public class MtParser {
 		} catch (ParserException e) {
 			Log.e(TAG, "getBookList ParserException");
 			e.printStackTrace();
+		}  catch (Exception e){
+			e.printStackTrace();
 		}
 
 		return list;
@@ -228,17 +232,17 @@ public class MtParser {
 									if(d3.getChildren().elementAt(num) instanceof ParagraphTag){
 										String s = d3.getChildren().elementAt(num).toPlainTextString();
 										mbd.bookDetail += s;
-										Log.d(TAG, "s = "+s);
+//										Log.d(TAG, "s = "+s);
 										if(s.contains("作者:")){
 											mbd.bookAuthor = s.split(":")[1];
-											Log.d(TAG, "mbd.bookAuthor  = "+mbd.bookAuthor);
+//											Log.d(TAG, "mbd.bookAuthor  = "+mbd.bookAuthor);
 										} else if(s.contains("状态:")){
 											if(!s.contains("连载")){
 												mbd.isFinish = true;
 											}
 										} else if(s.contains("更新时间:")){
 											mbd.bookUpdateTime = s.substring(s.indexOf(":")+1);
-											Log.d(TAG, "mbd.bookUpdateTime = "+mbd.bookUpdateTime);
+//											Log.d(TAG, "mbd.bookUpdateTime = "+mbd.bookUpdateTime);
 										}
 
 										if(num != size - 1){
@@ -254,7 +258,7 @@ public class MtParser {
 						for(Node d3 : d2.toNodeArray()){
 							if(d3 instanceof ParagraphTag){
 								mbd.bookAbout = d3.toPlainTextString();
-								Log.d(TAG, "mbd.bookAbout = "+mbd.bookAbout);
+//								Log.d(TAG, "mbd.bookAbout = "+mbd.bookAbout);
 							}
 						}
 					} else if(divClass.contains("book_listtext")){
@@ -282,6 +286,8 @@ public class MtParser {
 
 		} catch (ParserException e) {
 			Log.e(TAG, "getBookList ParserException");
+			e.printStackTrace();
+		}  catch (Exception e){
 			e.printStackTrace();
 		}
 
@@ -323,6 +329,8 @@ public class MtParser {
 		} catch (ParserException e) {
 			Log.e(TAG, "getBookChapters ParserException");
 			e.printStackTrace();
+		} catch (Exception e){
+			e.printStackTrace();
 		}
 
 		return mbd;
@@ -345,6 +353,8 @@ public class MtParser {
 			}
 
 		} catch (ParserException e) {
+			e.printStackTrace();
+		}  catch (Exception e){
 			e.printStackTrace();
 		}
 		return str;

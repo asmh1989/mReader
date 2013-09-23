@@ -23,6 +23,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + BookTable.BOOK_ABOUT + " integer,"
             + BookTable.BOOK_CHAPTERS + " integer,"
             + BookTable.BOOK_UPDATE_TIME +" text,"
+            + BookTable.BOOK_ADD_SHELF_TIME +" text,"
+            + BookTable.BOOK_LASTREAD +" text,"
             + BookTable.BOOK_IS_FINISH +" boolean"
             + ");";
     

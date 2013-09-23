@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
@@ -23,7 +23,7 @@
         <activity
             android:name="com.sun.mreader.activity.MainActivity"
             android:label="@string/app_name"
-            android:screenOrientation="user">
+            android:screenOrientation="user" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -33,12 +33,19 @@
         <activity android:name="com.sun.mreader.activity.BookDetailActivity" />
         <activity android:name="com.sun.mreader.activity.BookCategoryActivity" />
         <activity android:name="com.sun.mreader.activity.BookListActivity" />
+        <activity android:name="com.sun.mreader.activity.BookReaderActivity"
+            android:theme="@style/ReaderTheme" >
+            <intent-filter>
+                <action android:name="com.sun.mreader.view"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
 
         <provider
             android:name="com.sun.mreader.provider.BookProvider"
             android:authorities="com.sun.mreader" >
         </provider>
-        
+
         <service android:name="com.sun.mreader.service.BookService" />
     </application>
 

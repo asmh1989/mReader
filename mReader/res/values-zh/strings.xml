@@ -16,4 +16,18 @@
     <string name="downloadbook">下载阅读</string>
     <string name="already_in_bookshelf">已加入书架</string>
     <string name="all_choice">全选</string>
+    <string name="night_mode">夜间</string>
+    <string name="normal_mode">正常</string>
+    <string name="setting">设置</string>
+    <string name="system_brightness">系统</string>
+    <string name="pref_click_flip_animation">翻页动画</string>
+    <string name="pref_title_screen_off_time">屏幕关闭时间</string>
+    <string name="pref_dialog_title_screen_off_time">选择屏幕关闭时间</string>
+    <string name="search">搜索</string>
+    <string name="toc">目录</string>
+    <string name="error_bookshelf_load">载入书架出错</string>
+    <string name="alert_no_more">没有更多内容</string>
+    <string name="loading">载入中…</string>
+    <string name="reader_page_error">网页加载失败，请刷新或更换资源站</string>
+    <string name="retry">刷新</string>
 </resources>

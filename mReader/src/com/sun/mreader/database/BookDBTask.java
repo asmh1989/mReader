@@ -38,6 +38,8 @@ public class BookDBTask {
 		cv.put(BookTable.BOOK_CHAPTERS, book.getBookChapters());
 		cv.put(BookTable.BOOK_IS_FINISH, book.getBookIsFinish());
 		cv.put(BookTable.BOOK_UPDATE_TIME, book.getBookUpdateTime());
+		cv.put(BookTable.BOOK_ADD_SHELF_TIME, book.getAddTime());
+		cv.put(BookTable.BOOK_LASTREAD, book.getBookLastRead());
 
 		Cursor c = getWsd().query(BookTable.TABLE_NAME, null, BookTable.BOOK_ID + "=?",
 				new String[]{book.getBookID()}, null, null, null);
@@ -96,6 +98,14 @@ public class BookDBTask {
 			colid = c.getColumnIndex(BookTable.BOOK_URL);
 			book.setBookUrl(c.getString(colid));
 
+			colid = c.getColumnIndex(BookTable.BOOK_ADD_SHELF_TIME);
+			book.setBookAddTime(c.getString(colid));
+			
+			colid = c.getColumnIndex(BookTable.BOOK_LASTREAD);
+			book.setBookLastRead(c.getString(colid));
+			
+			colid = c.getColumnIndex(BookTable.BOOK_CHAPTERS);
+			book.setBookChapters(Integer.parseInt(c.getString(colid)));
 			return book;
 		}
 		return null;

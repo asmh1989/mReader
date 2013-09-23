@@ -44,6 +44,7 @@ import com.sun.mreader.activity.BookDetailActivity;
 import com.sun.mreader.adapter.MenuPopAdapter;
 import com.sun.mreader.database.BookChaptersDBTask;
 import com.sun.mreader.database.BookDBTask;
+import com.sun.mreader.database.BookTable;
 import com.sun.mreader.mt.BookChapter;
 import com.sun.mreader.mt.MtBookUtil;
 import com.sun.mreader.mt.MtUtils;
@@ -434,9 +435,9 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 				if(mChoiceNum[i]){
 					set.add(String.valueOf(mBookUtil.get(i).getBookID()));
 					BookDBTask.removeBook(set);
-					mBookUtil.remove(i);
 				}
 			}
+			mBookUtil = BookDBTask.getBookList();
 			notifyDataSetChanged();
 		}
 
@@ -619,6 +620,7 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 
 			@Override
 			public void run() {
+				//检查网络
 				if(why == UPDATE_BOOKS){
 					showUpdatesBar();
 				} else if(why == DOWNLOAD_BOOKS){
@@ -672,7 +674,13 @@ public class BookShelfFragment extends SherlockFragment implements OnItemClickLi
 					mChoiceNum[pos] = !mChoiceNum[pos];
 					notifyDataSetChanged();
 				} else {
-					
+					Intent i = new Intent(GlobalContext.ACTION_BOOK_READER);
+					i.putExtra(BookTable.BOOK_ID, bookUtil.getBookID());
+					try {
+						startActivity(i);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}

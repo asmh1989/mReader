@@ -81,7 +81,7 @@ public class BookChaptersDBTask {
 			chapter.setBookChapterUrl(c.getString(colid));
 
 			colid = c.getColumnIndex(BookChaptersTable.BOOK_CHAPTER_DOWNLOAD);
-			chapter.setIsDownload(Boolean.valueOf(c.getString(colid)));
+			chapter.setIsDownload(c.getInt(colid) == 1);
 
 			chapters.add(chapter);
 		}

@@ -4,5 +4,36 @@
     <dimen name="image_thumbnail_size">100dip</dimen>
     <dimen name="image_thumbnail_spacing">1dip</dimen>
     <dimen name="image_detail_pager_margin">80dip</dimen>
+    <dimen name="cover_width">56.0dip</dimen>
+    <dimen name="cover_height">70.0dip</dimen>
+    <dimen name="cover_width_bookshelf">44.0dip</dimen>
+    <dimen name="cover_height_bookshelf">55.0dip</dimen>
+    <dimen name="cover_full_width">96.0dip</dimen>
+    <dimen name="cover_full_height">120.0dip</dimen>
+    <dimen name="cover_three_width">52.0dip</dimen>
+    <dimen name="cover_three_height">65.0dip</dimen>
+    <dimen name="action_bar_bottom_height">70.0dip</dimen>
+    <dimen name="page_text_size">17.5dip</dimen>
+    <dimen name="page_small_text_size">13.0dip</dimen>
+    <dimen name="page_small_text_height">18.199982dip</dimen>
+    <dimen name="page_body_margin">7.0dip</dimen>
+    <dimen name="page_horizontal_padding">15.0dip</dimen>
+    <dimen name="page_vertical_padding">10.0dip</dimen>
+    <dimen name="text_size_xxl">19.0dip</dimen>
+    <dimen name="text_size_xl">17.0dip</dimen>
+    <dimen name="text_size_l">15.199982dip</dimen>
+    <dimen name="text_size_m">13.299988dip</dimen>
+    <dimen name="text_size_s">12.0dip</dimen>
+    <dimen name="text_size_xs">10.5dip</dimen>
+    <dimen name="text_size_tab">14.0dip</dimen>
+    <dimen name="margin_xs">2.7999878dip</dimen>
+    <dimen name="margin_s">6.0dip</dimen>
+    <dimen name="margin_m">10.0dip</dimen>
+    <dimen name="margin_l">14.199982dip</dimen>
+    <dimen name="margin_xl">19.0dip</dimen>
+    <dimen name="margin_xxl">23.699982dip</dimen>
+    <dimen name="margin_xxxl">28.0dip</dimen>
+    <dimen name="cover_width">56.0dip</dimen>
+    <dimen name="cover_height">70.0dip</dimen>
 
 </resources>

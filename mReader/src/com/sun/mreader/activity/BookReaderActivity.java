@@ -17,10 +17,6 @@ public class BookReaderActivity extends FragmentActivity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		requestWindowFeature(Window.FEATURE_NO_TITLE);  
-        //设置全屏  
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,   
-                WindowManager.LayoutParams.FLAG_FULLSCREEN); 
 		super.onCreate(savedInstanceState);
 		if(GlobalContext.ACTION_BOOK_READER.equals(getIntent().getAction())){
 			mBookId = getIntent().getStringExtra(BookTable.BOOK_ID);

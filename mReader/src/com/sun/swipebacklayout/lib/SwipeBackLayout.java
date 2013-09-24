@@ -406,7 +406,6 @@ public class SwipeBackLayout extends FrameLayout {
 
     @Override
     public void computeScroll() {
-//    	Log.d("SUNMM", "computeScroll ... mScrollPercent = "+mScrollPercent);
         mScrimOpacity = 1 - mScrollPercent;
         if (mDragHelper.continueSettling(true)) {
             ViewCompat.postInvalidateOnAnimation(this);

@@ -15,7 +15,7 @@
     <dimen name="action_bar_bottom_height">70.0dip</dimen>
     <dimen name="page_text_size">17.5dip</dimen>
     <dimen name="page_small_text_size">13.0dip</dimen>
-    <dimen name="page_small_text_height">18.199982dip</dimen>
+    <dimen name="page_small_text_height">20dip</dimen>
     <dimen name="page_body_margin">7.0dip</dimen>
     <dimen name="page_horizontal_padding">15.0dip</dimen>
     <dimen name="page_vertical_padding">10.0dip</dimen>
@@ -35,5 +35,8 @@
     <dimen name="margin_xxxl">28.0dip</dimen>
     <dimen name="cover_width">56.0dip</dimen>
     <dimen name="cover_height">70.0dip</dimen>
+    <dimen name="readerpiding">0dip</dimen>
+    <dimen name="page_left_right">12dip</dimen>
+    <dimen name="page_top_bottom">8dip</dimen>
 
 </resources>

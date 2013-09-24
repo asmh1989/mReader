@@ -82,7 +82,7 @@ public class BookChaptersDBTask {
 
 			colid = c.getColumnIndex(BookChaptersTable.BOOK_CHAPTER_DOWNLOAD);
 			chapter.setIsDownload(c.getInt(colid) == 1);
-
+			
 			chapters.add(chapter);
 		}
 		c.close();

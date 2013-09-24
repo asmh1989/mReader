@@ -5,11 +5,12 @@ import com.sun.mreader.fragment.BookReaderFragment;
 import com.sun.mreader.utils.GlobalContext;
 
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.Window;
 import android.view.WindowManager;
 
-public class BookReaderActivity extends BaseActivity {
+public class BookReaderActivity extends FragmentActivity {
 	private static final String TAG="SUNBookReaderActivity";
 
 	private String mBookId;

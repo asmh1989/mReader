@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:orientation="horizontal"
+    android:visibility="gone" >
+
+    <RelativeLayout
+        android:id="@+id/top"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="center_vertical"
+        android:background="@drawable/dark_ab_bg" >
+
+        <LinearLayout
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" >
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:src="@drawable/ic_ab_back" />
+
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5.0dip"
+                android:alpha="0.8"
+                android:textColor="#ffffffff"
+                android:textSize="16.0dip" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/btn_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="5.0dip"
+            android:padding="9.0dip"
+            android:src="@drawable/ic_ab_option" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/action_bar_bottom_height"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/bab_bg"
+        android:baselineAligned="false"
+        android:dividerPadding="5.0dip"
+        android:orientation="horizontal" >
+
+        <LinearLayout
+            android:id="@+id/btn_mode"
+            style="@style/bab_button" >
+
+            <ImageView
+                android:id="@+id/btn_mode_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription=""
+                android:src="@drawable/ic_menu_mode_night" />
+
+            <TextView
+                android:id="@+id/btn_mode_text"
+                style="@style/bab_button_text"
+                android:text="@string/night_mode" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="4.0px"
+            android:layout_height="fill_parent"
+            android:background="@drawable/bab_divider" />
+
+        <LinearLayout
+            android:id="@+id/btn_setting"
+            style="@style/bab_button" >
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription=""
+                android:src="@drawable/ic_menu_settings" />
+
+            <TextView
+                style="@style/bab_button_text"
+                android:text="@string/setting" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="4.0px"
+            android:layout_height="fill_parent"
+            android:background="@drawable/bab_divider" />
+
+        <LinearLayout
+            android:id="@+id/btn_toc"
+            style="@style/bab_button" >
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription=""
+                android:src="@drawable/ic_menu_toc" />
+
+            <TextView
+                style="@style/bab_button_text"
+                android:text="@string/toc" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

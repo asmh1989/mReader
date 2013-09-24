@@ -17,7 +17,7 @@ public class BaseActivity extends SwipeBackActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		setTheme(R.style.AppTheme);
+//		setTheme(R.style.AppTheme);
 		super.onCreate(savedInstanceState);
 		
 		mSwipeBackLayout = getSwipeBackLayout();

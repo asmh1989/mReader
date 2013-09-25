@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -30,6 +32,8 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.LinearLayout;
@@ -53,8 +57,8 @@ public class BookReaderFragment extends Fragment {
 
 	private ViewPager mViewPager;
 	private BookPagerAdapter mBookPagerAdapter;
-	private ViewAdapter mViewAdapter;
-	private List<View> mPagesView = new ArrayList<View>();
+	private pageView[] mPagesView = new pageView [3];
+	private Queue<pageView> vieww;
 	private int mPageSize = 3; //前中后
 	private List<BookChapter> mBookChapters;
 
@@ -77,8 +81,18 @@ public class BookReaderFragment extends Fragment {
 	public BookReaderFragment() {
 	}
 
-
-	enum STATE{
+	class pageView{
+		public pageView(GridView gd, ViewAdapter a) {
+			v = gd;
+			adpater = a;
+		}
+		public pageView() {
+			// TODO Auto-generated constructor stub
+		}
+		public GridView v;
+		public ViewAdapter adpater;
+	}
+	public static enum STATE{
 		PREV, CURRENT,NEXT
 	}
 
@@ -152,30 +166,33 @@ public class BookReaderFragment extends Fragment {
 			int th = 0;
 			while(th < length){
 				int prev = th;
-				for(int i = 0; i < lines; i++){
+				for(int i = 0; i < lines && th < length; i++){
 					th += getOneLineStringLen(ch.originContent.substring(th), th);
 				}
-				
-				ch.onePageString.add(ch.originContent.substring(prev, th));
+				if(th < length){
+					ch.onePageString.add(ch.originContent.substring(prev, th));
+				} else {
+					ch.onePageString.add(ch.originContent.substring(prev));
+				}
 			}
-			
+
 			ch.needFormat = false;
 			ch.readNow = 0;
 			ch.total = ch.onePageString.size();
 		}
-		
-	    public boolean isChinese(char c) {  
-	        Character.UnicodeBlock ub = Character.UnicodeBlock.of(c);  
-	        if (ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS  
-	                || ub == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS  
-	                || ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A  
-	                || ub == Character.UnicodeBlock.GENERAL_PUNCTUATION  
-	                || ub == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION  
-	                || ub == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS) {  
-	            return true;  
-	        }  
-	        return false;  
-	    }  
+
+		public boolean isChinese(char c) {  
+			Character.UnicodeBlock ub = Character.UnicodeBlock.of(c);  
+			if (ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS  
+					|| ub == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS  
+					|| ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A  
+					|| ub == Character.UnicodeBlock.GENERAL_PUNCTUATION  
+					|| ub == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION  
+					|| ub == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS) {  
+				return true;  
+			}  
+			return false;  
+		}  
 
 		private int getOneLineStringLen(String str, int th) {
 			int paint = 0;
@@ -186,18 +203,18 @@ public class BookReaderFragment extends Fragment {
 			while(true){
 				String tmpStr ;
 				if(str.length() > 128){
-					tmpStr = str2.substring(th, 128);
+					tmpStr = str2.substring(0, 128);
 					str2 = str2.substring(128);
 				}
 				else {
 					tmpStr = str;
 					str2 = "";
 				}
-				
+
 				if(tmpStr.length() == 0){
 					return th2;
 				}
-				
+
 				for(int i = 0; i < tmpStr.length(); i++){
 					char c = tmpStr.charAt(i);
 					if(isChinese(c)){
@@ -209,11 +226,11 @@ public class BookReaderFragment extends Fragment {
 							return th2++;
 						}
 					}
-					
+
 					if(paint > width){
 						return th2;
 					}
-					
+
 					th2++;
 				}
 			}
@@ -296,13 +313,6 @@ public class BookReaderFragment extends Fragment {
 				return Typeface.NORMAL;
 		}
 
-		private int getFontWidth(float fontSize) {
-			Paint paint = new Paint();  
-			paint.setTextSize(fontSize);  
-			FontMetrics fm = paint.getFontMetrics();  
-			return (int) Math.ceil(fm.descent - fm.ascent);  
-		}
-
 		private int getFontHeight(){  
 			Paint paint = new Paint();  
 			paint.setTextSize(fontSize);  
@@ -314,6 +324,32 @@ public class BookReaderFragment extends Fragment {
 			Log.d(TAG, "calculate other height = "+(height - bottomViewHeight - topviewHeight - bodyMargin - lines*getFontHeight()));
 			return height - bottomViewHeight - topviewHeight - bodyMargin - lines*getFontHeight();
 		}
+
+		public String getNextLoctionPage(STATE s, String lastread) {
+			int c = getCurrentChapter(lastread);
+			//			int loc = getCurrentPageLoc(lastread);
+			int loc = mChapters[1].location +1;
+			switch (s) {
+			case PREV:
+				if(loc == 1){
+					if(c == 0){			//已经是第一章了
+						return "0";
+					} else
+						return (c-1)+":"+(mChapters[0].total-1);
+				}
+				break;
+			case NEXT:
+				if(loc == mChapters[1].total){
+					if(c == mBookUtil.getBookChapters() - 1){
+						return (mBookUtil.getBookChapters())+"";
+					} else {
+						return (c+1)+":"+"0";
+					}
+				}
+				break;
+			}
+			return null;
+		}
 	}
 
 	private static final int LOAD_NEW_PAGE = 0;
@@ -324,9 +360,9 @@ public class BookReaderFragment extends Fragment {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case LOAD_NEW_PAGE:
-				mCurrentRead += onepageInScreen;
-				whichAdatperInFront++;
-				addPages();
+				STATE s = (STATE) msg.obj;
+				//				mCurrentRead = mOnePage.getNextLoctionPage(s, mCurrentRead);
+				addPages(s);
 				mBookPagerAdapter.notifyDataSetChanged();
 				break;
 
@@ -359,6 +395,10 @@ public class BookReaderFragment extends Fragment {
 		mOnePage.bottomViewHeight = mOnePage.topviewHeight  =h+top;
 		mOnePage.leftmargin = mOnePage.rightmargin = left;
 		mOnePage.topmargin = mOnePage.bottommargin = top;
+
+		for(int i = 0; i < mPagesView.length; i++){
+			mPagesView[i] = new pageView();
+		}
 	}
 
 	private int getCurrentChapter(String s){
@@ -372,7 +412,7 @@ public class BookReaderFragment extends Fragment {
 		if(s.contains(":")){
 			return Integer.parseInt(s.split(":")[1]);
 		} 
-		return Integer.parseInt(s);
+		return 0;
 	}
 
 	@Override
@@ -384,12 +424,37 @@ public class BookReaderFragment extends Fragment {
 		mViewPager.setAdapter(mBookPagerAdapter);
 
 		checkChapterIsDownload(getCurrentChapter(mCurrentRead));
-		addPages();
-		addPages();
-		mBookPagerAdapter.notifyDataSetChanged();
-		mViewPager.setOnPageChangeListener(new myOnPageChangeListener());
+		if(hasPrevPage()){
+			addPages(STATE.PREV);
+		}
+		addPages(STATE.CURRENT);
+		if(hasNextPage()){
+			addPages(STATE.NEXT);
+		}
 
+		mViewPager.setOnPageChangeListener(new myOnPageChangeListener());
+		mViewPager.setCurrentItem(601);
+		mBookPagerAdapter.notifyDataSetChanged();
 		return v;
+	}
+
+	private boolean hasNextPage() {
+		//		int c = getCurrentChapter(mCurrentRead);
+		//		int w = getCurrentPageLoc(mCurrentRead);
+		//		if(c == mBookUtil.getBookChapters()){
+		//			return false;
+		//		}
+		return true;
+	}
+
+	private boolean hasPrevPage() {
+
+		//		int c = getCurrentChapter(mCurrentRead);
+		//		int w = getCurrentPageLoc(mCurrentRead);
+		//		if(c == 0 && w == 0){
+		//			return false;
+		//		}
+		return true;
 	}
 
 	private void checkChapterIsDownload(int l) {
@@ -429,22 +494,48 @@ public class BookReaderFragment extends Fragment {
 		return content;
 	}
 
-	private void addPages() {
+	private void addPages(STATE s) {
 		GridView gd = new GridView(getActivity());
-		ViewAdapter Adapter;
-		Adapter = new ViewAdapter();
-		if(whichAdatperInFront == mPagesView.size()){
-			mViewAdapter = Adapter;
-		}
-		gd.setAdapter(mViewAdapter);
+		ViewAdapter Adapter = new ViewAdapter();
+		gd.setAdapter(Adapter);
 		gd.setNumColumns(1);
 		gd.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
 		gd.setBackgroundColor(Color.TRANSPARENT);
 		gd.setCacheColorHint(Color.TRANSPARENT);
 		gd.setSelector(new ColorDrawable(Color.TRANSPARENT));
 		gd.setPadding(mOnePage.leftmargin, mOnePage.topmargin, mOnePage.leftmargin, mOnePage.bottommargin);
-		mPagesView.add(gd);
 
+		gd.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				Toast.makeText(getActivity(), mViewPager.getCurrentItem()+"", Toast.LENGTH_SHORT).show();
+			}
+		});
+		switch (s) {
+		case PREV:
+			if(mPagesView[0].v != null){
+				mPagesView[2] = mPagesView[1];
+				mPagesView[1] = mPagesView[0];
+			}
+			mPagesView[0].v = gd;
+			mPagesView[0].adpater = Adapter;
+			break;
+		case CURRENT:
+			mPagesView[1].v = gd;
+			mPagesView[1].adpater = Adapter;
+			break;
+		case NEXT:
+			if(mPagesView[2].v != null){
+				mPagesView[0] = mPagesView[1];
+				mPagesView[1] = mPagesView[2];
+			}
+			mPagesView[2].v = gd;
+			mPagesView[2].adpater = Adapter;
+			break;
+		}
+		Log.d(TAG, "add page = "+s+" v="+gd);
 	}
 
 	@Override
@@ -471,20 +562,31 @@ public class BookReaderFragment extends Fragment {
 
 		@Override
 		public void destroyItem(View arg0, int arg1, Object arg2) {
-			((ViewPager) arg0).removeView(mPagesView.get(arg1));
+			((ViewPager) arg0).removeView((View)arg2);
 		}
 
 		@Override
 		public int getCount() {
 			//			Log.d(TAG, "BookPagerAdapter getCount() = "+mPagesView.size());
-			return mPagesView.size();
+			return mPagesView.length*1000000;
 		}
 
 		@Override
 		public Object instantiateItem(View arg0, int arg1) {
-			//			Log.d(TAG, "instantiateItem : mPagesView.get(arg1) = "+mPagesView.get(arg1));
-			((ViewPager) arg0).addView(mPagesView.get(arg1), 0);
-			return mPagesView.get(arg1);
+			View v = null;
+			if(hasPrevPage()){
+				v = mPagesView[arg1%3].v;
+			} else{
+				v = mPagesView[(arg1+1)%3].v;
+			}
+
+			if(v == null){
+				v = mPagesView[1].v;
+			}
+			((ViewPager) arg0).addView(v, 0);
+			Log.d(TAG, "instantiateItem : mPagesView.get(arg1) = "+arg1+" v = "+v +" count = "+((ViewPager) arg0).getChildCount());
+
+			return v;
 		}
 
 		@Override
@@ -516,10 +618,18 @@ public class BookReaderFragment extends Fragment {
 
 	class ViewAdapter extends BaseAdapter{
 		private LayoutInflater mInflater;
+		private STATE pageState;
+		private String pageReadState;
 
 		public ViewAdapter(){
 			mInflater = LayoutInflater.from(getActivity());
 		}
+
+		public void setAdapterState(STATE s, String r){
+			pageState = s;
+			pageReadState = r;
+		}
+
 		@Override
 		public int getCount() {
 			return 1;
@@ -571,20 +681,28 @@ public class BookReaderFragment extends Fragment {
 
 	private class myOnPageChangeListener implements OnPageChangeListener {
 
+		private static final boolean DEBUG = true;
+		private int changed;
+		private int scrolled;
 		public void onPageScrollStateChanged(int arg0) {
+			//			Log.d(TAG, "onPageScrollStateChanged  arg0 = "+arg0);
+			changed = arg0;
 		}
 
 		// 第一个View滑动前调用
 		public void onPageScrolled(int arg0, float arg1, int arg2) {
+			scrolled = arg0;
+			//			Log.d(TAG, "onPageScrolled  arg0 = "+arg0+" arg1 = "+arg1+ " arg2 = "+arg2);
 		}
 
 		// 新View被加载后调用
 		public void onPageSelected(int arg0) {
 			// 判断当前View是否为倒数第一个View
-			if (mPagesView.size() == arg0 + 1&&arg0+1>1) {
+			Log.d(TAG, " onPageSelected : "+ arg0 +" changed = "+changed +" scrolled = "+scrolled);
+			if (arg0+1>1) {
 				Message ms = mhandler.obtainMessage();
 				ms.what = LOAD_NEW_PAGE;
-				ms.arg1 = arg0+1;
+				ms.obj = (arg0 > scrolled) ? STATE.NEXT : STATE.PREV;
 				ms.sendToTarget();
 			}
 		}
@@ -620,7 +738,7 @@ public class BookReaderFragment extends Fragment {
 				GlobalContext.saveContent(result, chapter.get_ID(), mBookUtil.getBookName());
 				BookChaptersDBTask.updateBookChapterForDownload(chapter);
 
-				mViewAdapter.notifyDataSetChanged();
+				mPagesView[STATE.CURRENT.ordinal()].adpater.notifyDataSetChanged();
 			} else {
 				Toast.makeText(getActivity(), "ERROR!!", Toast.LENGTH_SHORT).show();
 			}

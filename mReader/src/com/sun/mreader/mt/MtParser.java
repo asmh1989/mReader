@@ -16,6 +16,7 @@ import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
 import com.sun.mreader.html.LinkTagSet;
+import com.sun.mreader.utils.GlobalContext;
 import com.sun.mreader.utils.Log;
 
 public class MtParser {
@@ -348,7 +349,20 @@ public class MtParser {
 			NodeList n = nodes.elementAt(0).getChildren();
 			for(Node d : n.toNodeArray()){
 				if(d.toPlainTextString().length() > 0){
-					str += d.toPlainTextString()+'\n';
+					String str2 = d.toPlainTextString()+'\n';
+					if(str2.contains("为您提供精彩小说阅读")){
+						continue;
+					}
+					
+					if(str2.contains("nbsp")){
+						str2 = "    "+str2.substring(24);
+					}
+					if(str2.contains("未完待续")){
+						str2.replaceAll("未完待续", "");
+						str2.replaceAll("（）", "");
+					}
+
+					str += str2;
 				}
 			}
 

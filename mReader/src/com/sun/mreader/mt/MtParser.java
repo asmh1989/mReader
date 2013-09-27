@@ -318,7 +318,7 @@ public class MtParser {
 					String name = d4.toPlainTextString();
 					if(name.contains("/")){
 						name = name.contains("/") ? name.substring(0, name.indexOf("/")) : name;
-						Log.d(TAG,  "plaint text = "+name +" ## Bullet link = "+d4.getLink());
+//						Log.d(TAG,  "plaint text = "+name +" ## Bullet link = "+d4.getLink());
 					}
 					ch.setBookChapter(name);
 					ch.setBookChapterUrl(d4.getLink());
@@ -355,11 +355,12 @@ public class MtParser {
 					}
 					
 					if(str2.contains("nbsp")){
-						str2 = "    "+str2.substring(24);
+						str2 = "　　"+str2.substring(24);
 					}
 					if(str2.contains("未完待续")){
-						str2.replaceAll("未完待续", "");
-						str2.replaceAll("（）", "");
+						str2 = str2.replaceAll("未完待续", "");
+						str2 = str2.replaceAll("（）", "");
+						str2 = str2.replaceAll("()", "");
 					}
 
 					str += str2;

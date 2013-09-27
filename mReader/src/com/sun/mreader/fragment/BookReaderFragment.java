@@ -28,6 +28,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.text.TextPaint;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,6 +49,7 @@ import com.sun.mreader.mt.BookChapter;
 import com.sun.mreader.mt.MtBookUtil;
 import com.sun.mreader.mt.MtParser;
 import com.sun.mreader.ui.AutoBreakTextView;
+import com.sun.mreader.utils.BCConvert;
 import com.sun.mreader.utils.GlobalContext;
 import com.sun.mreader.utils.Log;
 
@@ -94,7 +96,7 @@ public class BookReaderFragment extends Fragment {
 		public int bottomViewHeight;
 		public int topviewHeight;
 		public int bodyMargin;
-		private Paint Charfont;
+		private TextPaint Charfont;
 		private int fontStyle = 0;
 		private String fontName = "MONOSPACE";
 		private float fontSize;
@@ -133,12 +135,12 @@ public class BookReaderFragment extends Fragment {
 			int c = getCurrentChapter(mCurrentRead);
 			int l = getCurrentPageLoc(mCurrentRead);
 			chapter ch;
-			if(c == 0 && l == 0){
-				ch = mChapters[0];
-			} else {
+//			if(c == 0 && l == 0){
+//				ch = mChapters[0];
+//			} else {
 				ch = mChapters[1];
-			}
-			
+//			}
+
 			if(ch == null){
 				return "";
 			}
@@ -162,29 +164,39 @@ public class BookReaderFragment extends Fragment {
 		}
 
 		public void formatChapter(chapter ch){
-			int length = ch.originContent.length();
 			int th = 0;
 			String str = ch.originContent;
+			String [] paragraph = str.split("\n");
+			int length = paragraph.length;
+			int offset = 0;
 			while(th < length){
 				String onePageStr = "";
+				String str2 ="";
 				for(int i = 0; i < lines && th < length; i++){
-					int offset = getOneLineStringLen(str);
-					String str2 = str.substring(0, offset);
-
-					if(str2.contains("\n")){
-						str2.replace("\n", "");
-					}
-
-					Log.d(TAG, "offset = "+offset+" th = "+th + " i = "+i+" lines = "+ str2);
-
-					onePageStr += str2;
-					if(str.length() > offset){
-						str = str.substring(offset);
+					String tmpStr = BCConvert.bj2qj(paragraph[th].substring(offset));
+					int off = getOneLineStringLen(tmpStr);
+					if(off == 0){
+						th++;
+						str2 = tmpStr;
+						offset = 0;
 					} else {
-						str = "";
+						str2 = tmpStr.substring(0, off);
+						while(getTextPaint().measureText(str2) > getRowsLen()){
+							off--;
+							str2 = tmpStr.substring(0, off);
+						}
+						offset += off;
+	
 					}
-					
-					th+=offset;
+
+					Log.d(TAG,  " i = "+i+"offset = "+offset+" th = "+th +" lines = "+ str2);
+					Log.d(TAG, " length = "+getTextPaint().measureText(str2));
+					if(i + 1 == lines){
+						onePageStr += str2;
+					} else {
+						onePageStr += str2+"\n";
+					}
+
 				}
 
 				ch.onePageString.add(onePageStr);
@@ -220,19 +232,18 @@ public class BookReaderFragment extends Fragment {
 			int haswidth = getRowsLen();
 			String str2 = str;
 			int th = 0;
-			String prev = null;
-
+			
 			while(true){
 				String tmpStr ;
-				if(str.length() > 128){
+				if(str2.length() > 128){
 					tmpStr = str2.substring(0, 128);
 					str2 = str2.substring(128);
 				} else {
-					tmpStr = str;
+					tmpStr = str2;
 					str2 = "";
 				}
 				if(tmpStr.length() == 0){
-					return th;
+					return 0;
 				}
 				for(int i = 0; i < tmpStr.length(); i++){
 					char c = tmpStr.charAt(i);
@@ -240,28 +251,14 @@ public class BookReaderFragment extends Fragment {
 						stop();
 					}
 					if(isChinese(c)){
-						paint += GetZNFontInfo().width();
+						paint += GetZNFontInfo(c).width();
 					} else {
-						if('\t' == c){
-							paint += 2* GetZNFontInfo().width();
-						} else if(c == '\n'){
-							return ++th;
-						} else {
-							paint += GetENFontInfo(c).width();
-						}
+						paint += GetENFontInfo(c).width();
 					}
 
-					paint += scaleX;
-					
 					if(paint > haswidth){
-						if(prev != null && !isChinese(prev.charAt(0))){
-							Log.d(TAG, "need tiaozheng !!!");
-//							return th -2;
-						}
 						return th;
 					}
-
-					prev = c+"";
 
 					th++;
 				}
@@ -290,7 +287,7 @@ public class BookReaderFragment extends Fragment {
 
 		public  float [] setLineSpace(){
 			if (Charfont == null){
-				Charfont=getFont();
+				Charfont=getTextPaint();
 			}
 			FontMetrics fm = Charfont.getFontMetrics();  
 
@@ -307,9 +304,9 @@ public class BookReaderFragment extends Fragment {
 			}  
 			return new float []{fAddValue, fMulValue};  
 		}
-		public Paint getFont(){
+		public TextPaint getTextPaint(){
 			if (Charfont == null){
-				Charfont=new Paint();
+				Charfont=new TextPaint();
 				if (fontName.equals("MONOSPACE"))
 					Charfont.setTypeface(Typeface.create(Typeface.MONOSPACE,getVTFontStyle()));
 				else if (fontName.equals("SANS_SERIF"))
@@ -320,7 +317,7 @@ public class BookReaderFragment extends Fragment {
 					Charfont.setTypeface(Typeface.create(fontName, getVTFontStyle()));
 				Charfont.setTextSize(fontSize);
 				Charfont.setAntiAlias(true);
-				Charfont.setXfermode(new PixelXorXfermode(7));
+//				Charfont.setXfermode(new PixelXorXfermode(7));
 				//_VTFont.setTextScaleX(1.0f); //设置文本绽放倍数，默认为1
 				return Charfont;
 			}
@@ -330,13 +327,14 @@ public class BookReaderFragment extends Fragment {
 
 		public Rect GetENFontInfo(char c){
 			Rect efontrect = new Rect();
-			getFont().getTextBounds(c+"", 0, 1, efontrect);
+			getTextPaint().getTextBounds(c+"", 0, 1, efontrect);
 			return efontrect;
 		}
 
-		private Rect GetZNFontInfo(){
+		private Rect GetZNFontInfo(char c){
 			Rect cfontrect =  new Rect();
-			getFont().getTextBounds("辉", 0, 1, cfontrect );
+			getTextPaint().getTextBounds("辉", 0, 1, cfontrect );
+//			Log.d("SUNMM", " char : "+c+" length = "+cfontrect.width());
 			return cfontrect;
 		}
 
@@ -350,8 +348,7 @@ public class BookReaderFragment extends Fragment {
 		}
 
 		private int getFontHeight(){  
-			Paint paint = new Paint();  
-			paint.setTextSize(fontSize);  
+			TextPaint paint = getTextPaint();
 			FontMetrics fm = paint.getFontMetrics();  
 			return (int) Math.ceil(fm.descent - fm.ascent);  
 		}
@@ -385,6 +382,10 @@ public class BookReaderFragment extends Fragment {
 				break;
 			}
 			return null;
+		}
+
+		public void setPaint(TextPaint paint) {
+			Charfont = paint;
 		}
 	}
 
@@ -642,15 +643,14 @@ public class BookReaderFragment extends Fragment {
 			TextView battery = (TextView) convertView.findViewById(R.id.tv_battery);
 			TextView time = (TextView) convertView.findViewById(R.id.tv_time);
 			TextView pageNumber = (TextView) convertView.findViewById(R.id.tv_page_number);
-			
-			chapterBoby.setMywidth(mOnePage.getRowsLen());
-			mOnePage.setScale((int)chapterBoby.getScaleX(),(int)chapterBoby.getScaleY());
-			
-			chapterTitle.setText(mBookChapters.get(getCurrentChapter(mCurrentRead)).getBookChapter());
-			chapterBoby.setLines(mOnePage.calculateLines(chapterBoby.getTextSize()));
 
-			chapterBoby.setText(mOnePage.getOnePageString(pageState));
-//						chapterBoby.setText(bookChars);
+			chapterTitle.setText(mBookChapters.get(getCurrentChapter(mCurrentRead)).getBookChapter());
+//			mOnePage.setPaint(chapterBoby.getPaint());
+			chapterBoby.setLines(mOnePage.calculateLines(chapterBoby.getTextSize()));
+			mOnePage.setScale((int)chapterBoby.getScaleX(),(int)chapterBoby.getScaleY());
+			chapterBoby.setMywidth(mOnePage.getRowsLen(), chapterBoby.getScaleX(), chapterBoby.getScaleY());
+			chapterBoby.setText(mOnePage.getOnePageString(pageState), mOnePage.getTextPaint());
+			//						chapterBoby.setText(bookChars);
 
 			float [] f = mOnePage.setLineSpace();
 			chapterBoby.setLineSpacing(f[0], f[1]);

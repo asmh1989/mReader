@@ -86,22 +86,26 @@ public class AutoBreakTextView extends TextView {
 		int length = lineStr.length;
 		float height = 0.0F;
 		for (int i = 0, j = 1; i < length; i++, j++) {
-			int will = (int)mPaint.measureText(lineStr[i]);
+			String str = lineStr[i];
+			int will = (int)mPaint.measureText(str);
 			if(m_iTextWidth - will < (int)mPaint.measureText("我")){
-				scaleX = m_iTextWidth - will;
+				scaleX = (m_iTextWidth - will)*1.0F /(str.length() - 1);
 			} else {
 				scaleX = 0;
 			}
-			String str = lineStr[i];
-//			canvas.drawText(mSpannableFactory.newSpannable(str).toString(), 0, scaleY*(j-1)
-//					+ m_iFontHeight * j, mPaint);
-			
-			canvas.drawText(str, 0, str.length(), 0, scaleY*(j-1)+m_iFontHeight * j, mPaint);
-			
-//			canvas.translate(0, height);
-//			StaticLayout layout = new StaticLayout(string,mPaint,m_iTextWidth,Alignment.ALIGN_NORMAL,scaleY,0.0F,true); 
-//			height += layout.getHeight();
-//			layout.draw(canvas);
+
+			if(scaleX > 0){
+				for(int s = 0; s < str.length(); s++){
+					String c = str.charAt(s)+"";
+					float x = scaleX;
+					if(s == 0){
+						x = 0;
+					}
+					canvas.drawText(c, s*x+mPaint.measureText(str.substring(0, s)), scaleY*(j-1)+m_iFontHeight * j, mPaint);
+				}
+			} else {
+				canvas.drawText(str, 0, scaleY*(j-1)+m_iFontHeight * j, mPaint);
+			}
 		}
 	}
 	

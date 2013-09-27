@@ -16,6 +16,7 @@ import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
 import com.sun.mreader.html.LinkTagSet;
+import com.sun.mreader.utils.BCConvert;
 import com.sun.mreader.utils.GlobalContext;
 import com.sun.mreader.utils.Log;
 
@@ -355,7 +356,7 @@ public class MtParser {
 					}
 					
 					if(str2.contains("nbsp")){
-						str2 = "　　"+str2.substring(24);
+						str2 = BCConvert.bj2qj("  ")+str2.substring(24);
 					}
 					if(str2.contains("未完待续")){
 						str2 = str2.replaceAll("未完待续", "");

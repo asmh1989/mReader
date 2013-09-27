@@ -173,7 +173,8 @@ public class BookReaderFragment extends Fragment {
 				String onePageStr = "";
 				String str2 ="";
 				for(int i = 0; i < lines && th < length; i++){
-					String tmpStr = BCConvert.bj2qj(paragraph[th].substring(offset));
+//					String tmpStr = BCConvert.bj2qj(paragraph[th].substring(offset)); //半角转全角
+					String tmpStr = paragraph[th].substring(offset);
 					int off = getOneLineStringLen(tmpStr);
 					if(off == 0){
 						th++;

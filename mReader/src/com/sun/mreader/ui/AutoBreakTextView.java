@@ -82,9 +82,8 @@ public class AutoBreakTextView extends TextView {
 			lineStr = new String [1];
 			lineStr[0] = string;
 		}
-		Log.d("SUNMM", "found lines = "+ lineStr.length);
+//		Log.d("SUNMM", "found lines = "+ lineStr.length);
 		int length = lineStr.length;
-		float height = 0.0F;
 		for (int i = 0, j = 1; i < length; i++, j++) {
 			String str = lineStr[i];
 			int will = (int)mPaint.measureText(str);

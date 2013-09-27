@@ -102,6 +102,8 @@ public class BookReaderFragment extends Fragment {
 		private float fontSize;
 		private int scaleX;
 		private int scaleY;
+		private int fontZhWidth;
+		private int fontEnWidth;
 
 		public void setScale(int x, int y){
 			scaleX = x;
@@ -133,39 +135,68 @@ public class BookReaderFragment extends Fragment {
 		public String getOnePageString(STATE s){
 			String str ="";
 			int c = getCurrentChapter(mCurrentRead);
-			int l = getCurrentPageLoc(mCurrentRead);
-			chapter ch;
-//			if(c == 0 && l == 0){
-//				ch = mChapters[0];
-//			} else {
-				ch = mChapters[1];
-//			}
+			int whichPage = getCurrentPageLoc(mCurrentRead);
+			chapter ch = getChapter(STATE.CURRENT);
+			if(whichPage == ch.total - 1  && s == STATE.NEXT){
+				whichPage = 0;
+				c = c + 1;
+				ch = getChapter(s);
+			} else if( whichPage == 0 && s == STATE.PREV){
+				c = c - 1;
+				ch = getChapter(s);
+				whichPage = ch.total - 1;
 
-			if(ch == null){
-				return "";
+			}  else if(s != STATE.CURRENT){
+				whichPage = (s == STATE.PREV) ? whichPage - 1: whichPage + 1;
 			}
+			if(checkChapterIsDownload(c)){
+				if(ch.needFormat){
+					formatChapter(ch);
+				}
+				
+				str = ch.onePageString.get(whichPage);
 
-			if(ch.needFormat){
-				formatChapter(s);
+				return str;
+			} else {
+				return null;
 			}
-			switch (s){
-			case NEXT:
-
-				break;
-			case PREV:
-
-				break;
-			case CURRENT:
-				str = ch.onePageString.get(l);
-				break;
+		}
+		
+		private chapter getChapter(STATE s){
+			int loc = s.ordinal();
+			if(mChapters[loc] == null){
+				mChapters[loc] = new chapter();
 			}
-
-			return str;
+			if(lines > 0){
+				formatChapter(mChapters[loc]);
+			}
+			
+			return mChapters[loc];
+		}
+		
+		public CharSequence getWhichpageNow(STATE s, String r) {
+			int c = getCurrentChapter(r);
+			int whichPage = getCurrentPageLoc(r);
+			chapter ch = getChapter(STATE.CURRENT);
+			if(whichPage == ch.total - 1  && s == STATE.NEXT){
+				return "1/"+getChapter(s).total;
+			} else if( whichPage == 0 && s == STATE.PREV){
+				int w = getChapter(s).total;
+				return (w -1) +"/"+w;
+			}  else if(s != STATE.CURRENT){
+				whichPage = (s == STATE.PREV) ? whichPage - 1: whichPage + 1;
+				return whichPage+"/"+ch.total;
+			}
+			
+			return null;
 		}
 
 		public void formatChapter(chapter ch){
 			int th = 0;
 			String str = ch.originContent;
+			if(str == null){
+				return;
+			}
 			String [] paragraph = str.split("\n");
 			int length = paragraph.length;
 			int offset = 0;
@@ -173,7 +204,7 @@ public class BookReaderFragment extends Fragment {
 				String onePageStr = "";
 				String str2 ="";
 				for(int i = 0; i < lines && th < length; i++){
-//					String tmpStr = BCConvert.bj2qj(paragraph[th].substring(offset)); //半角转全角
+					//					String tmpStr = BCConvert.bj2qj(paragraph[th].substring(offset)); //半角转全角
 					String tmpStr = paragraph[th].substring(offset);
 					int off = getOneLineStringLen(tmpStr);
 					if(off == 0){
@@ -187,11 +218,12 @@ public class BookReaderFragment extends Fragment {
 							str2 = tmpStr.substring(0, off);
 						}
 						offset += off;
-	
+
 					}
 
-					Log.d(TAG,  " i = "+i+"offset = "+offset+" th = "+th +" lines = "+ str2);
-					Log.d(TAG, " length = "+getTextPaint().measureText(str2));
+//					Log.d(TAG,  " i = "+i+"offset = "+offset+" th = "+th +" lines = "+ str2);
+//					Log.d(TAG, " length = "+getTextPaint().measureText(str2));
+					
 					if(i + 1 == lines){
 						onePageStr += str2;
 					} else {
@@ -209,9 +241,7 @@ public class BookReaderFragment extends Fragment {
 		}
 
 		public void formatChapter(STATE s){
-			int loc = s.ordinal();
-			chapter ch = mChapters[loc];
-			if(ch == null) return;
+			chapter ch = getChapter(s);
 			formatChapter(ch);
 		}
 
@@ -233,7 +263,7 @@ public class BookReaderFragment extends Fragment {
 			int haswidth = getRowsLen();
 			String str2 = str;
 			int th = 0;
-			
+
 			while(true){
 				String tmpStr ;
 				if(str2.length() > 128){
@@ -252,15 +282,15 @@ public class BookReaderFragment extends Fragment {
 						stop();
 					}
 					if(isChinese(c)){
-						paint += GetZNFontInfo(c).width();
+						paint += GetZNFontInfo();
 					} else {
-						paint += GetENFontInfo(c).width();
+						paint += GetENFontInfo();
 					}
 
 					if(paint > haswidth){
 						return th;
 					}
-
+					paint += scaleX;
 					th++;
 				}
 			}
@@ -318,7 +348,7 @@ public class BookReaderFragment extends Fragment {
 					Charfont.setTypeface(Typeface.create(fontName, getVTFontStyle()));
 				Charfont.setTextSize(fontSize);
 				Charfont.setAntiAlias(true);
-//				Charfont.setXfermode(new PixelXorXfermode(7));
+				//				Charfont.setXfermode(new PixelXorXfermode(7));
 				//_VTFont.setTextScaleX(1.0f); //设置文本绽放倍数，默认为1
 				return Charfont;
 			}
@@ -326,17 +356,22 @@ public class BookReaderFragment extends Fragment {
 				return Charfont;
 		}
 
-		public Rect GetENFontInfo(char c){
-			Rect efontrect = new Rect();
-			getTextPaint().getTextBounds(c+"", 0, 1, efontrect);
-			return efontrect;
+		public int GetENFontInfo(){
+			if(fontEnWidth == 0){
+				Rect cfontrect =  new Rect();
+				getTextPaint().getTextBounds("A", 0, 1, cfontrect);
+				fontEnWidth = cfontrect.width();
+			}
+			return fontEnWidth;
 		}
 
-		private Rect GetZNFontInfo(char c){
-			Rect cfontrect =  new Rect();
-			getTextPaint().getTextBounds("辉", 0, 1, cfontrect );
-//			Log.d("SUNMM", " char : "+c+" length = "+cfontrect.width());
-			return cfontrect;
+		private int GetZNFontInfo(){
+			if(fontZhWidth == 0){
+				Rect cfontrect =  new Rect();
+				getTextPaint().getTextBounds("辉", 0, 1, cfontrect);
+				fontZhWidth = cfontrect.width();
+			} 
+			return fontZhWidth;
 		}
 
 		private int getVTFontStyle(){
@@ -388,6 +423,8 @@ public class BookReaderFragment extends Fragment {
 		public void setPaint(TextPaint paint) {
 			Charfont = paint;
 		}
+
+
 	}
 
 	private static final int LOAD_NEW_PAGE = 0;
@@ -404,7 +441,6 @@ public class BookReaderFragment extends Fragment {
 				} else {
 					mCurrentRead = mOnePage.getNextLoctionPage(s, mCurrentRead);
 				}
-				//				addPages(s);
 				mBookPagerAdapter.notifyDataSetChanged();
 				break;
 
@@ -492,18 +528,20 @@ public class BookReaderFragment extends Fragment {
 		return true;
 	}
 
-	private void checkChapterIsDownload(int l) {
+	private boolean checkChapterIsDownload(int l) {
 		BookChapter b = mBookChapters.get(l);
 		String path = GlobalContext.getPath()+"/"+mBookUtil.getBookName().trim()+"/"+b.get_ID();
 		Log.d(TAG, "will open : "+path);
 		if(b.getIsDownload() && (new File(path).exists()) ){
 			bookChars = getChapterContentFromFiles(b.get_ID(), mBookUtil.getBookName().trim());
 			mOnePage.addChapter(bookChars, STATE.CURRENT);
+			return true;
 		} else {
 			mProgressDialog.setMessage(getActivity().getResources().getString(R.string.loading));
 			mProgressDialog.show();
 
 			new GetMtBookChapterContentTask(b).execute();
+			return false;
 		}
 	}
 
@@ -606,11 +644,13 @@ public class BookReaderFragment extends Fragment {
 	class ViewAdapter extends BaseAdapter{
 		private LayoutInflater mInflater;
 		private STATE pageState;
+		private String readstate;
 		private String pageReadState;
 
-		public ViewAdapter(STATE s){
+		public ViewAdapter(STATE s, String r){
 			mInflater = LayoutInflater.from(getActivity());
 			pageState= s;
+			readstate = r;
 		}
 
 		public void setAdapterState(STATE s, String r){
@@ -646,18 +686,23 @@ public class BookReaderFragment extends Fragment {
 			TextView pageNumber = (TextView) convertView.findViewById(R.id.tv_page_number);
 
 			chapterTitle.setText(mBookChapters.get(getCurrentChapter(mCurrentRead)).getBookChapter());
-//			mOnePage.setPaint(chapterBoby.getPaint());
+			mOnePage.setPaint(chapterBoby.getPaint());
 			chapterBoby.setLines(mOnePage.calculateLines(chapterBoby.getTextSize()));
 			mOnePage.setScale((int)chapterBoby.getScaleX(),(int)chapterBoby.getScaleY());
 			chapterBoby.setMywidth(mOnePage.getRowsLen(), chapterBoby.getScaleX(), chapterBoby.getScaleY());
-			chapterBoby.setText(mOnePage.getOnePageString(pageState), mOnePage.getTextPaint());
-			//						chapterBoby.setText(bookChars);
+			String out = mOnePage.getOnePageString(pageState);
+			if(out != null){
+				chapterBoby.setText(out, mOnePage.getTextPaint());
+				battery.setText("99");
+				time.setText("23:12");
+				pageNumber.setText(mOnePage.getWhichpageNow(pageState, readstate));
+			} else {
+				chapterBoby.setText("........................", mOnePage.getTextPaint());
+			}
+			
 
 			float [] f = mOnePage.setLineSpace();
 			chapterBoby.setLineSpacing(f[0], f[1]);
-			battery.setText("99");
-			time.setText("23:12");
-			pageNumber.setText("1/10");
 
 			battery.setVisibility(View.VISIBLE);
 			time.setVisibility(View.VISIBLE);
@@ -759,7 +804,6 @@ public class BookReaderFragment extends Fragment {
 
 		public pageView(int cur){
 			currentItem = cur % 3;
-			//			initPage();
 		}
 
 		public ViewAdapter getAdapter(STATE s) {
@@ -773,12 +817,6 @@ public class BookReaderFragment extends Fragment {
 			}
 			return null;
 		}
-
-		//		private void initPage(){
-		//			prevPage = addPages(STATE.PREV);
-		//			currentPage = addPages(STATE.CURRENT);
-		//			nextPage = addPages(STATE.NEXT);
-		//		}
 
 		public View getPageView(STATE s){
 			int which = s.ordinal();
@@ -804,7 +842,7 @@ public class BookReaderFragment extends Fragment {
 
 		private onePage addPages(STATE s) {
 			GridView gd = new GridView(getActivity());
-			ViewAdapter Adapter = new ViewAdapter(s);
+			ViewAdapter Adapter = new ViewAdapter(s, mCurrentRead);
 			gd.setAdapter(Adapter);
 			gd.setNumColumns(1);
 			gd.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
@@ -826,29 +864,6 @@ public class BookReaderFragment extends Fragment {
 			p.v = gd;
 			p.adpater = Adapter;
 			return p;
-			//			switch (s) {
-			//			case PREV:
-			//				if(mPagesView[0].v != null){
-			//					mPagesView[2] = mPagesView[1];
-			//					mPagesView[1] = mPagesView[0];
-			//				}
-			//				mPagesView[0].v = gd;
-			//				mPagesView[0].adpater = Adapter;
-			//				break;
-			//			case CURRENT:
-			//				mPagesView[1].v = gd;
-			//				mPagesView[1].adpater = Adapter;
-			//				break;
-			//			case NEXT:
-			//				if(mPagesView[2].v != null){
-			//					mPagesView[0] = mPagesView[1];
-			//					mPagesView[1] = mPagesView[2];
-			//				}
-			//				mPagesView[2].v = gd;
-			//				mPagesView[2].adpater = Adapter;
-			//				break;
-			//			}
-			//			Log.d(TAG, "add page = "+s+" v="+gd);
 		}
 	}
 

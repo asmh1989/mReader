@@ -39,4 +39,5 @@
     <dimen name="page_left_right">12dip</dimen>
     <dimen name="page_top_bottom">8dip</dimen>
 
+    <dimen name="body_text_size">18sp</dimen>
 </resources>

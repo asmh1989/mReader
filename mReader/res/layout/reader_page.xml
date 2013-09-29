@@ -24,7 +24,7 @@
             android:layout_height="match_parent"
             android:layout_marginBottom="@dimen/page_body_margin"
             android:layerType="software"
-            android:textSize="18sp" />
+            android:textSize="@dimen/body_text_size" />
 
         <LinearLayout
             android:id="@+id/ll_error"
@@ -52,6 +52,31 @@
                 android:paddingRight="@dimen/margin_m"
                 android:text="@string/retry"
                 android:textSize="@dimen/text_size_l" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/loading"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/page_small_text_size"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone" >
+
+            <ProgressBar
+                android:id="@+id/loading_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="60dip" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_s"
+                android:background="@null"
+                android:padding="@dimen/margin_m"
+                android:paddingLeft="@dimen/margin_l"
+                android:paddingRight="@dimen/margin_m"
+                android:text="@string/loading"
+                android:textSize="@dimen/text_size_xl" />
         </LinearLayout>
     </FrameLayout>
 

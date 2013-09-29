@@ -47,34 +47,7 @@ public class AutoBreakTextView extends TextView {
 		int m_iFontHeight;
 		FontMetrics fm = mPaint.getFontMetrics();
 		m_iFontHeight = (int) Math.ceil(fm.descent - fm.ascent);// 计算字体高度（字体高度＋行间距）
-//		for (int i = 0; i < string.length(); i++) {
-//			ch = string.charAt(i);
-//			float[] widths = new float[1];
-//			String srt = String.valueOf(ch);
-//			mPaint.getTextWidths(srt, widths);
-//			if (ch == '\n') {
-//				m_iRealLine++;
-//				m_String.addElement(string.substring(istart, i));
-//				istart = i + 1;
-//				w = 0;
-//			} else {
-//				w += (int) (Math.ceil(widths[0]));
-//				if (w > m_iTextWidth) {
-//					m_iRealLine++;
-//					m_String.addElement(string.substring(istart, i));
-//					istart = i;
-//					i--;
-//					w = 0;
-//				} else {
-//					if (i == (string.length() - 1)) {
-//						m_iRealLine++;
-//						m_String.addElement(string.substring(istart,
-//								string.length()));
-//					}
-//				}
-//			}
-//		}
-//		canvas.s(m_iTextWidth, m_iTextHeight);
+		
 		String [] lineStr = null;
 		if(string.contains("\n")){
 			lineStr = string.split("\n");
@@ -82,7 +55,6 @@ public class AutoBreakTextView extends TextView {
 			lineStr = new String [1];
 			lineStr[0] = string;
 		}
-//		Log.d("SUNMM", "found lines = "+ lineStr.length);
 		int length = lineStr.length;
 		for (int i = 0, j = 1; i < length; i++, j++) {
 			String str = lineStr[i];

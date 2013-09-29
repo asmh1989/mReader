@@ -3,8 +3,6 @@ package com.sun.mreader.activity;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.htmlparser.tags.TableHeader;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;

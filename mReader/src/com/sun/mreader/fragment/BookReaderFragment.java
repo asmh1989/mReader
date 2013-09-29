@@ -64,8 +64,6 @@ public class BookReaderFragment extends Fragment {
 	private ViewPager mViewPager;
 	private BookPagerAdapter mBookPagerAdapter;
 	private pageView mPagesView;
-	private Queue<pageView> vieww;
-	private int mPageSize = 3; //前中后
 	private List<BookChapter> mBookChapters;
 
 	private String mBookId;
@@ -99,8 +97,8 @@ public class BookReaderFragment extends Fragment {
 		private int fontStyle = 0;
 		private String fontName = "MONOSPACE";
 		private float fontSize;
-		private int scaleX;
-		private int scaleY;
+		private int scaleX = 1;
+		private int scaleY = 1;
 		private int fontZhWidth;
 		private int fontEnWidth;
 
@@ -144,30 +142,31 @@ public class BookReaderFragment extends Fragment {
 			}
 		}
 
-		public String getOnePageString(STATE s, String last){
+		public String getOnePageString(int  item){
 			String str ="";
-			int c = getCurrentChapter(last);
-			int whichPage = getCurrentPageLoc(last);
+			int c = getCurrentChapter(mCurrentRead);
+			int whichPage = getCurrentPageLoc(mCurrentRead);
 			chapter ch = getChapter(STATE.CURRENT);
-			if(whichPage == ch.total - 1  && s == STATE.NEXT){
+			STATE s = getStateFromItem(item);
+			if(whichPage == ch.total  && s == STATE.NEXT){
 				whichPage = 0;
 				c = c + 1;
 				ch = getChapter(s);
-			} else if( whichPage == 0 && s == STATE.PREV){
+			} else if( whichPage == 1 && s == STATE.PREV){
 				c = c - 1;
 				ch = getChapter(s);
-				whichPage = - 1;
+				whichPage = whichPage -1;
 
 			}  else if(s != STATE.CURRENT){
 				whichPage = (s == STATE.PREV) ? whichPage - 1: whichPage + 1;
 			}
 			if(checkChapterIsDownload(c, s)){
-				if(whichPage  == -1){
-					whichPage = ch.total - 1;
+				if(whichPage  == 0){
+					whichPage = ch.total;
 				}
 				Log.d(TAG, "getOnePageString : has loading chapter = "+c+" s = "+s+" whichPage = "+whichPage);
 
-				str = ch.onePageString.get(whichPage);
+				str = ch.onePageString.get(whichPage - 1);
 
 				return str;
 			} else {
@@ -184,21 +183,22 @@ public class BookReaderFragment extends Fragment {
 			return mChapters[loc];
 		}
 
-		public CharSequence getWhichpageNow(STATE s, String r) {
-			int c = getCurrentChapter(r);
-			int whichPage = getCurrentPageLoc(r);
+		public CharSequence getWhichpageNow(int item) {
+			int c = getCurrentChapter(mCurrentRead);
+			int whichPage = getCurrentPageLoc(mCurrentRead);
 			chapter ch = getChapter(STATE.CURRENT);
-			if(whichPage == ch.total - 1  && s == STATE.NEXT){
+			STATE s = getStateFromItem(item);
+			if(whichPage == ch.total  && s == STATE.NEXT){
 				return "1/"+getChapter(s).total;
-			} else if( whichPage == 0 && s == STATE.PREV){
+			} else if(whichPage == 1 && s == STATE.PREV){
 				int w = getChapter(s).total;
-				return (w -1) +"/"+w;
+				return w +"/"+w;
 			}  else if(s != STATE.CURRENT){
 				whichPage = (s == STATE.PREV) ? whichPage - 1: whichPage + 1;
 				return whichPage+"/"+ch.total;
 			}
 
-			return null;
+			return whichPage+"/"+ch.total;
 		}
 
 		public void formatChapter(chapter ch){
@@ -207,6 +207,7 @@ public class BookReaderFragment extends Fragment {
 			String [] paragraph = str.split("\n");
 			int length = paragraph.length;
 			int offset = 0;
+			ch.onePageString.clear();
 			while(th < length){
 				String onePageStr = "";
 				String str2 ="";
@@ -228,7 +229,7 @@ public class BookReaderFragment extends Fragment {
 
 					}
 
-					//					Log.d(TAG,  " i = "+i+"offset = "+offset+" th = "+th +" lines = "+ str2);
+//										Log.d(TAG,  " i = "+i+"offset = "+offset+" th = "+th +" lines = "+ str2);
 					//					Log.d(TAG, " length = "+getTextPaint().measureText(str2));
 
 					if(i + 1 == lines){
@@ -392,6 +393,11 @@ public class BookReaderFragment extends Fragment {
 			return height - bottomViewHeight - topviewHeight - bodyMargin - lines*getFontHeight();
 		}
 
+		/** 章节的页数从1开始， 0代表到头了 
+		 * @param s
+		 * @param lastread
+		 * @return
+		 */
 		public String getNextLoctionPage(STATE s, String lastread) {
 			int c = getCurrentChapter(lastread);
 			int loc = getCurrentPageLoc(lastread);
@@ -403,9 +409,9 @@ public class BookReaderFragment extends Fragment {
 						return "0";
 					} else{
 						if(mChapters[0].total == 0){
-							return (c-1)+":"+"-1";
+							return (c-1)+":"+"0";
 						}
-						return (c-1)+":"+(mChapters[0].total-1);
+						return (c-1)+":"+(mChapters[0].total);
 					}
 				} else 
 					return c+":"+(loc-1);
@@ -414,7 +420,7 @@ public class BookReaderFragment extends Fragment {
 					if(c == mBookUtil.getBookChapters() - 1){
 						return (mBookUtil.getBookChapters())+"";
 					} else {
-						return (c+1)+":"+"0";
+						return (c+1)+":"+"1";
 					}
 				} else {
 					return c+":"+(loc+1);
@@ -427,17 +433,12 @@ public class BookReaderFragment extends Fragment {
 			Charfont = paint;
 		}
 
-		public int getChapterOfAdater(STATE pageState, String readstate, int item){
-			int c = getCurrentChapter(readstate);
-			int loc = getCurrentPageLoc(readstate);
-			STATE s = STATE.CURRENT;
-			if(item == mCurrentSeletItem - 1){
-				s = STATE.PREV;
-			} else if(item == mCurrentSeletItem + 1){
-				s = STATE.NEXT;
-			}
+		public int getChapterOfAdater(int item){
+			int c = getCurrentChapter(mCurrentRead);
+			int loc = getCurrentPageLoc(mCurrentRead);
+			STATE s = getStateFromItem(item);
 
-			Log.d("SUNMM", "item = "+item+" pageState = "+pageState+" STATE from item = "+s);
+			Log.d("SUNMM", "getChapterOfAdater ： item = "+item+" pageState = ");
 
 			if(loc == 1 && s == STATE.PREV){
 				c = c - 1;
@@ -448,21 +449,16 @@ public class BookReaderFragment extends Fragment {
 			return c;
 		}
 
-		public boolean checkContent(STATE pageState, String readstate, int item) {
-			int c = getChapterOfAdater(pageState, readstate, item);
-			STATE s = STATE.CURRENT;
-			if(item == mCurrentSeletItem - 1){
-				s = STATE.PREV;
-			} else if(item == mCurrentSeletItem + 1){
-				s = STATE.NEXT;
-			}
+		public boolean checkContent(int item) {
+			int c = getChapterOfAdater(item);
+			STATE s = getStateFromItem(item);
 
 			return  checkChapterIsDownload(c, s);
 		}
 
 		public void checkChapters(final STATE s, String last) {
 			int c = getCurrentChapter(last);
-			final int c2 = getChapterOfAdater(s,  last, mCurrentSeletItem);
+			final int c2 = getChapterOfAdater(mCurrentSeletItem);
 			if(c2 != c){
 				Log.d(TAG, "need load chapters = "+last+ " s = "+s);
 				checkChapterIsDownload(c2, s);
@@ -495,6 +491,15 @@ public class BookReaderFragment extends Fragment {
 		}
 	}
 
+	public STATE getStateFromItem(int item){
+        STATE s = STATE.CURRENT;
+        if(item == mCurrentSeletItem - 1){
+            s = STATE.PREV;
+        } else if(item == mCurrentSeletItem + 1){
+            s = STATE.NEXT;
+        }
+        return s;
+	}
 	private static final int LOAD_NEW_PAGE = 0;
 
 	private Handler mhandler = new Handler(){
@@ -515,9 +520,9 @@ public class BookReaderFragment extends Fragment {
 					}
 					mCurrentRead = tmp;
 				}
-
+				Log.d(TAG, "LOAD_NEW_PAGE mCUrrent = "+mCurrentRead+" s ="+s);
 				mOnePage.checkChapters(s, mCurrentRead);
-				mBookPagerAdapter.notifyDataSetChanged();
+//				mBookPagerAdapter.notifyDataSetChanged();
 				break;
 
 			default:
@@ -536,7 +541,7 @@ public class BookReaderFragment extends Fragment {
 		mBookUtil = BookDBTask.getBook(mBookId);
 		mCurrentRead = mBookUtil.getBookLastRead();
 		Log.d(TAG, "mCurrentRead = "+mCurrentRead+" chapters = "+mBookUtil.getBookChapters());
-		mCurrentRead = "2:0";
+		mCurrentRead = "2:1";
 
 		mProgressDialog = new ProgressDialog(getActivity());
 		Display display = getActivity().getWindowManager().getDefaultDisplay();
@@ -693,12 +698,7 @@ public class BookReaderFragment extends Fragment {
 
 		@Override
 		public Object instantiateItem(View arg0, int arg1) {
-			STATE s = STATE.CURRENT;
-			if(arg1 == mCurrentSeletItem - 1){
-				s = STATE.PREV;
-			} else if(arg1 == mCurrentSeletItem + 1){
-				s = STATE.NEXT;
-			}
+			STATE s = getStateFromItem(arg1);
 			View v =mPagesView.getPageView(s, arg1);
 
 			((ViewPager) arg0).addView(v, 0);
@@ -737,20 +737,11 @@ public class BookReaderFragment extends Fragment {
 
 	class ViewAdapter extends BaseAdapter{
 		private LayoutInflater mInflater;
-		private STATE pageState;
-		private String readstate;
 		private int item;
 
-		public ViewAdapter(STATE s, String r, int i){
+		public ViewAdapter(int i){
 			mInflater = LayoutInflater.from(getActivity());
-			pageState= s;
-			readstate = r;
 			item = i;
-		}
-
-		public void setAdapterState(STATE s, String r){
-			pageState = s;
-			readstate = r;
 		}
 
 		@Override
@@ -787,29 +778,28 @@ public class BookReaderFragment extends Fragment {
 
 			chapterBoby.setTextSize(TypedValue.COMPLEX_UNIT_PX, mOnePage.fontSize);
 
-			if(mOnePage.checkContent(pageState, readstate, item)){
+			if(mOnePage.checkContent(item)){
 				chapterBoby.setVisibility(View.VISIBLE);
 				loading.setVisibility(View.GONE);
-				chapterTitle.setText(mBookChapters.get(mOnePage.getChapterOfAdater(pageState, readstate, item)).getBookChapter());
-				chapterBoby.setLines(mOnePage.lines);
+				chapterTitle.setText(mBookChapters.get(mOnePage.getChapterOfAdater(item)).getBookChapter());
+				chapterBoby.setLines(mOnePage.calculateLines());
 				mOnePage.setScale((int)chapterBoby.getScaleX(),(int)chapterBoby.getScaleY());
 				chapterBoby.setMywidth(mOnePage.getRowsLen(), chapterBoby.getScaleX(), chapterBoby.getScaleY());
-				String out = mOnePage.getOnePageString(pageState, readstate);
+				String out = mOnePage.getOnePageString(item);
 				if(out != null){
 					chapterBoby.setText(out, mOnePage.getTextPaint());
 				} else {
 					chapterBoby.setText("...", mOnePage.getTextPaint());
 				}
-				pageNumber.setText(mOnePage.getWhichpageNow(pageState, readstate));
-				float [] f = mOnePage.setLineSpace();
-				chapterBoby.setLineSpacing(f[0], f[1]);
-
+				pageNumber.setText(mOnePage.getWhichpageNow(item));
 			} else {
 				chapterBoby.setVisibility(View.INVISIBLE);
 				loading.setVisibility(View.VISIBLE);
 			}
 
-
+            float [] f = mOnePage.setLineSpace();
+            chapterBoby.setLineSpacing(f[0], f[1]);
+            
 			battery.setVisibility(View.VISIBLE);
 			time.setVisibility(View.VISIBLE);
 			pageNumber.setVisibility(View.VISIBLE);
@@ -838,7 +828,7 @@ public class BookReaderFragment extends Fragment {
 		// 新View被加载后调用
 		public void onPageSelected(int arg0) {
 			// 判断当前View是否为倒数第一个View
-			Log.d(TAG, " onPageSelected : "+ arg0 +" changed = "+changed +" scrolled = "+scrolled);
+//			Log.d(TAG, " onPageSelected : "+ arg0 +" changed = "+changed +" scrolled = "+scrolled);
 			if (arg0+1>1) {
 				Message ms = mhandler.obtainMessage();
 				ms.what = LOAD_NEW_PAGE;
@@ -929,7 +919,7 @@ public class BookReaderFragment extends Fragment {
 			int which = s.ordinal();
 			View v = null;
 
-			onePage p = addPages(s, item);
+			onePage p = addPages(item);
 			if(which == currentItem){
 				return (currentPage = p).v;
 			}
@@ -948,9 +938,9 @@ public class BookReaderFragment extends Fragment {
 			return v;
 		}
 
-		private onePage addPages(STATE s, int item) {
+		private onePage addPages(int item) {
 			GridView gd = new GridView(getActivity());
-			ViewAdapter Adapter = new ViewAdapter(s, mCurrentRead, item);
+			ViewAdapter Adapter = new ViewAdapter(item);
 			gd.setAdapter(Adapter);
 			gd.setNumColumns(1);
 			gd.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);

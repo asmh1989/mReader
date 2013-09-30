@@ -35,9 +35,8 @@ public class AutoBreakTextView extends TextView {
 		manager.getDefaultDisplay().getMetrics(dm);
 	}
 	
-	public void setMywidth(int w, float x, float y){
+	public void setMywidth(int w, float y){
 		m_iTextWidth = w;
-		scaleX = x;
 		scaleY = y;
 	}
 	

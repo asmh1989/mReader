@@ -5,16 +5,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PixelXorXfermode;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.Paint.FontMetrics;
@@ -47,12 +42,11 @@ import com.sun.mreader.R;
 import com.sun.mreader.database.BookChaptersDBTask;
 import com.sun.mreader.database.BookDBTask;
 import com.sun.mreader.database.BookTable;
-import com.sun.mreader.fragment.BookReaderFragment.pageView.onePage;
+import com.sun.mreader.fragment.BookReaderFragment.page.chapter;
 import com.sun.mreader.mt.BookChapter;
 import com.sun.mreader.mt.MtBookUtil;
 import com.sun.mreader.mt.MtParser;
 import com.sun.mreader.ui.AutoBreakTextView;
-import com.sun.mreader.utils.BCConvert;
 import com.sun.mreader.utils.GlobalContext;
 import com.sun.mreader.utils.Log;
 
@@ -65,6 +59,7 @@ public class BookReaderFragment extends Fragment {
 	private BookPagerAdapter mBookPagerAdapter;
 	private pageView mPagesView;
 	private List<BookChapter> mBookChapters;
+	private List<String> mHasDownloadChapter = new ArrayList<String>();
 
 	private String mBookId;
 	private MtBookUtil  mBookUtil;
@@ -93,6 +88,8 @@ public class BookReaderFragment extends Fragment {
 		public int bottomViewHeight;
 		public int topviewHeight;
 		public int bodyMargin;
+		public int bodyHeigth;
+		public int bodyWidth;
 		private TextPaint Charfont;
 		private int fontStyle = 0;
 		private String fontName = "MONOSPACE";
@@ -130,8 +127,8 @@ public class BookReaderFragment extends Fragment {
 		 * @param s
 		 * @param chapterNum
 		 */
-		public void addChapter(String content, STATE s, int chapterNum){
-			int loc = s.ordinal();
+		public synchronized void addChapter(String content, int item, int chapterNum){
+			int loc = getStateFromItem(item).ordinal();
 			if(mChapters[loc].whichChapter != chapterNum){
 				mChapters[loc].needFormat = true;
 			}
@@ -149,22 +146,31 @@ public class BookReaderFragment extends Fragment {
 			chapter ch = getChapter(STATE.CURRENT);
 			STATE s = getStateFromItem(item);
 			if(whichPage == ch.total  && s == STATE.NEXT){
-				whichPage = 0;
+				whichPage = 1;
 				c = c + 1;
 				ch = getChapter(s);
 			} else if( whichPage == 1 && s == STATE.PREV){
 				c = c - 1;
 				ch = getChapter(s);
-				whichPage = whichPage -1;
+				whichPage = 0;
 
 			}  else if(s != STATE.CURRENT){
 				whichPage = (s == STATE.PREV) ? whichPage - 1: whichPage + 1;
 			}
-			if(checkChapterIsDownload(c, s)){
-				if(whichPage  == 0){
+			if(checkChapterIsDownload(c, item)){
+				if(whichPage < 1){
 					whichPage = ch.total;
 				}
-				Log.d(TAG, "getOnePageString : has loading chapter = "+c+" s = "+s+" whichPage = "+whichPage);
+
+				if(whichPage > ch.total){
+					whichPage = 1;
+				}
+
+				if(whichPage < 1){
+					return null;
+				}
+
+				Log.d(TAG, "getOnePageString : has loading chapter = "+c+" item = "+item+" whichPage = "+whichPage);
 
 				str = ch.onePageString.get(whichPage - 1);
 
@@ -201,7 +207,7 @@ public class BookReaderFragment extends Fragment {
 			return whichPage+"/"+ch.total;
 		}
 
-		public void formatChapter(chapter ch){
+		public synchronized void formatChapter(chapter ch){
 			int th = 0;
 			String str = ch.originContent;
 			String [] paragraph = str.split("\n");
@@ -229,8 +235,8 @@ public class BookReaderFragment extends Fragment {
 
 					}
 
-//										Log.d(TAG,  " i = "+i+"offset = "+offset+" th = "+th +" lines = "+ str2);
-					//					Log.d(TAG, " length = "+getTextPaint().measureText(str2));
+					Log.d(TAG,  " i = "+i+"offset = "+offset+" th = "+th +" lines = "+ str2);
+					Log.d(TAG, " length = "+getTextPaint().measureText(str2));
 
 					if(i + 1 == lines){
 						onePageStr += str2;
@@ -303,6 +309,8 @@ public class BookReaderFragment extends Fragment {
 		}
 
 		public int calculateLines(){
+			bodyHeigth = height - bottomViewHeight - topviewHeight - bodyMargin;
+			bodyWidth = width - leftmargin - rightmargin;
 			return lines = (height - bottomViewHeight - topviewHeight - bodyMargin) / (getFontHeight()+scaleY);
 		}
 
@@ -438,8 +446,6 @@ public class BookReaderFragment extends Fragment {
 			int loc = getCurrentPageLoc(mCurrentRead);
 			STATE s = getStateFromItem(item);
 
-			Log.d("SUNMM", "getChapterOfAdater ： item = "+item+" pageState = ");
-
 			if(loc == 1 && s == STATE.PREV){
 				c = c - 1;
 			} else if(s == STATE.NEXT){
@@ -451,21 +457,20 @@ public class BookReaderFragment extends Fragment {
 
 		public boolean checkContent(int item) {
 			int c = getChapterOfAdater(item);
-			STATE s = getStateFromItem(item);
 
-			return  checkChapterIsDownload(c, s);
+			return  checkChapterIsDownload(c, item);
 		}
 
-		public void checkChapters(final STATE s, String last) {
+		public void checkChapters(int item, String last) {
 			int c = getCurrentChapter(last);
-			final int c2 = getChapterOfAdater(mCurrentSeletItem);
+			final int c2 = getChapterOfAdater(item);
 			if(c2 != c){
-				Log.d(TAG, "need load chapters = "+last+ " s = "+s);
-				checkChapterIsDownload(c2, s);
+				Log.d(TAG, "need load c2 = "+c2+ " item = "+item);
+				checkChapterIsDownload(c2, item);
 			}
 		}
 
-		public boolean hasThisChapter(int l, STATE s) {
+		public boolean hasThisChapter(int l) {
 			for(int i = 0; i < 3; i++){
 				if(mChapters[i] != null && mChapters[i].whichChapter == l){
 					return true;
@@ -476,31 +481,42 @@ public class BookReaderFragment extends Fragment {
 
 		public void switchChapters(STATE s) {
 			if(s == STATE.PREV){
+				chapter tmp = mChapters[2];
 				mChapters[2] = mChapters[1];
 				mChapters[1] = mChapters[0];
 				if (mChapters[0] != null){
+					mChapters[0] = tmp;
 					mChapters[0].whichChapter = -1;
 				}
 			} else if(s == STATE.NEXT){
+				chapter tmp = mChapters[0];
 				mChapters[0] = mChapters[1];
 				mChapters[1] = mChapters[2];
 				if (mChapters[2] != null){
+					mChapters[2] = tmp;
 					mChapters[2].whichChapter = -1;
 				}
 			}
 		}
+
+		public float getScaleY() {
+			scaleY = (bodyHeigth - lines*(getFontHeight()+1))/(lines -1)+1;
+			return scaleY;
+		}
 	}
 
 	public STATE getStateFromItem(int item){
-        STATE s = STATE.CURRENT;
-        if(item == mCurrentSeletItem - 1){
-            s = STATE.PREV;
-        } else if(item == mCurrentSeletItem + 1){
-            s = STATE.NEXT;
-        }
-        return s;
+		STATE s = STATE.CURRENT;
+		if(item == mCurrentSeletItem - 1){
+			s = STATE.PREV;
+		} else if(item == mCurrentSeletItem + 1){
+			s = STATE.NEXT;
+		}
+		return s;
 	}
 	private static final int LOAD_NEW_PAGE = 0;
+	private static final int DOWNLOAD_CHAPTER_FINISHED = 1;
+	private static final int REFRESH_CHAPTER = 2;
 
 	private Handler mhandler = new Handler(){
 
@@ -520,11 +536,26 @@ public class BookReaderFragment extends Fragment {
 					}
 					mCurrentRead = tmp;
 				}
-				Log.d(TAG, "LOAD_NEW_PAGE mCUrrent = "+mCurrentRead+" s ="+s);
-				mOnePage.checkChapters(s, mCurrentRead);
-//				mBookPagerAdapter.notifyDataSetChanged();
+				Log.d(TAG, "LOAD_NEW_PAGE mCUrrent = "+mCurrentRead+" s ="+s+" mcurrent Item = "+mCurrentSeletItem);
+				mOnePage.checkChapters(mCurrentSeletItem+(s == STATE.PREV ? -1:1), mCurrentRead);
+				//				mBookPagerAdapter.notifyDataSetChanged();
 				break;
-
+			case DOWNLOAD_CHAPTER_FINISHED:
+				mProgressDialog.dismiss();
+				int item = msg.arg1;
+				mPagesView.getAdapter(STATE.PREV).notifyDataSetChanged();
+				mPagesView.getAdapter(STATE.CURRENT).notifyDataSetChanged();
+				mPagesView.getAdapter(STATE.NEXT).notifyDataSetChanged();
+				//				mBookPagerAdapter.notifyDataSetChanged();
+				Log.d("SUNMM"," item ="+item+" s = "+ getStateFromItem(item)+" is download finish");
+				Message msg2 = new Message();
+				msg2.what = REFRESH_CHAPTER;
+				msg2.arg1 = item;
+				mhandler.sendMessageAtTime(msg2, 400);
+				break;
+			case REFRESH_CHAPTER:
+				mPagesView.getAdapter(getStateFromItem(msg.arg1)).notifyDataSetChanged();
+				break;
 			default:
 				break;
 			}
@@ -558,11 +589,11 @@ public class BookReaderFragment extends Fragment {
 
 		mOnePage.fontSize = getResources().getDimension(R.dimen.body_text_size);
 		int lines  = mOnePage.calculateLines();
-		Log.d(TAG, "width = "+mOnePage.width+" hegiht = "+mOnePage.height+" density = "+density+" h = "+h+" fontsize = "
-				+mOnePage.fontSize+" lines = "+lines);
+		Log.d("SUNMM", "width = "+mOnePage.width+" hegiht = "+mOnePage.height+" density = "+density+" h = "+h+" fontsize = "
+				+mOnePage.fontSize+" lines = "+lines+"body_width = "+mOnePage.bodyWidth+" body_height = "+mOnePage.bodyHeigth);
 
 
-		checkChapterIsDownload(getCurrentChapter(mCurrentRead), STATE.CURRENT);
+		checkChapterIsDownload(getCurrentChapter(mCurrentRead), mCurrentSeletItem);
 	}
 
 	private int getCurrentChapter(String s){
@@ -615,28 +646,35 @@ public class BookReaderFragment extends Fragment {
 		return true;
 	}
 
-	private boolean checkChapterIsDownload(int l, STATE s) {
-		BookChapter b = mBookChapters.get(l);
-		String path = GlobalContext.getPath()+"/"+mBookUtil.getBookName().trim()+"/"+b.get_ID();
-		if(mOnePage.hasThisChapter(l, s)){
-			return true;
-		}
-		//		Log.d(TAG, "will open : "+path);
-		if(b.getIsDownload() && (new File(path).exists()) ){
-			bookChars = getChapterContentFromFiles(b.get_ID(), mBookUtil.getBookName().trim());
-			mOnePage.addChapter(bookChars, s, l);
-			Log.d(TAG, "checkChapterIsDownload ... has load chapter = "+ l+" s = "+s);
-			return true;
-		} else {
-			mProgressDialog.setMessage(getActivity().getResources().getString(R.string.loading));
-			if(s == STATE.CURRENT){
-				mProgressDialog.show();
-			}
-
-			new GetMtBookChapterContentTask(b,s,l).execute();
-			Log.d(TAG, "checkChapterIsDownload ... start  download chapter = "+ l+" s = "+s);
+	private boolean checkChapterIsDownload(int l, int item) {
+		if(l < 0){
 			return false;
 		}
+		BookChapter b = mBookChapters.get(l);
+		String path = GlobalContext.getPath()+"/"+mBookUtil.getBookName().trim()+"/"+b.get_ID();
+		if(mOnePage.hasThisChapter(l)){
+			return true;
+		}
+		Log.d(TAG, "will open : "+path);
+		if(b.getIsDownload() && (new File(path).exists()) ){
+			bookChars = getChapterContentFromFiles(b.get_ID(), mBookUtil.getBookName().trim())+"";
+			if(bookChars.length() > 0){
+				mOnePage.addChapter(bookChars, item, l);
+				Log.d(TAG, "checkChapterIsDownload ... has load chapter = "+ l+" item = "+item);
+				return true;
+			}
+		} 
+		mProgressDialog.setMessage(getActivity().getResources().getString(R.string.loading));
+		if(item == mCurrentSeletItem){
+			mProgressDialog.show();
+		}
+
+		if(!mHasDownloadChapter.contains(l+"")){
+			new GetMtBookChapterContentThread(b,item,l).start();
+			mHasDownloadChapter.add(l+"");
+		}
+
+		return false;
 	}
 
 	public String getChapterContentFromFiles(String name, String bookname){
@@ -703,7 +741,6 @@ public class BookReaderFragment extends Fragment {
 
 			((ViewPager) arg0).addView(v, 0);
 			//			Log.d(TAG, "instantiateItem : s = "+s+" v = "+v +" count = "+((ViewPager) arg0).getChildCount());
-
 
 			return v;
 		}
@@ -774,32 +811,32 @@ public class BookReaderFragment extends Fragment {
 
 			battery.setText("99");
 			time.setText("23:12");
-			pageNumber.setText("1/10");
+			//			pageNumber.setText("1/10");
 
 			chapterBoby.setTextSize(TypedValue.COMPLEX_UNIT_PX, mOnePage.fontSize);
-
-			if(mOnePage.checkContent(item)){
-				chapterBoby.setVisibility(View.VISIBLE);
-				loading.setVisibility(View.GONE);
+			chapterBoby.setLines(mOnePage.calculateLines());
+			chapterBoby.setMywidth(mOnePage.getRowsLen(), mOnePage.getScaleY());
+			try{
 				chapterTitle.setText(mBookChapters.get(mOnePage.getChapterOfAdater(item)).getBookChapter());
-				chapterBoby.setLines(mOnePage.calculateLines());
-				mOnePage.setScale((int)chapterBoby.getScaleX(),(int)chapterBoby.getScaleY());
-				chapterBoby.setMywidth(mOnePage.getRowsLen(), chapterBoby.getScaleX(), chapterBoby.getScaleY());
+			} catch (Exception e) {
+			}
+			if(mOnePage.checkContent(item)){
+				loading.setVisibility(View.GONE);
+
 				String out = mOnePage.getOnePageString(item);
 				if(out != null){
 					chapterBoby.setText(out, mOnePage.getTextPaint());
 				} else {
-					chapterBoby.setText("...", mOnePage.getTextPaint());
+					chapterBoby.setText("   ", mOnePage.getTextPaint());
 				}
 				pageNumber.setText(mOnePage.getWhichpageNow(item));
 			} else {
-				chapterBoby.setVisibility(View.INVISIBLE);
 				loading.setVisibility(View.VISIBLE);
+				chapterBoby.setText("   ", mOnePage.getTextPaint());
 			}
 
-            float [] f = mOnePage.setLineSpace();
-            chapterBoby.setLineSpacing(f[0], f[1]);
-            
+			float [] f = mOnePage.setLineSpace();
+			chapterBoby.setLineSpacing(f[0], f[1]);
 			battery.setVisibility(View.VISIBLE);
 			time.setVisibility(View.VISIBLE);
 			pageNumber.setVisibility(View.VISIBLE);
@@ -828,7 +865,7 @@ public class BookReaderFragment extends Fragment {
 		// 新View被加载后调用
 		public void onPageSelected(int arg0) {
 			// 判断当前View是否为倒数第一个View
-//			Log.d(TAG, " onPageSelected : "+ arg0 +" changed = "+changed +" scrolled = "+scrolled);
+			//			Log.d(TAG, " onPageSelected : "+ arg0 +" changed = "+changed +" scrolled = "+scrolled);
 			if (arg0+1>1) {
 				Message ms = mhandler.obtainMessage();
 				ms.what = LOAD_NEW_PAGE;
@@ -839,54 +876,46 @@ public class BookReaderFragment extends Fragment {
 		}
 	}
 
-	class GetMtBookChapterContentTask extends AsyncTask<String,Integer,String> {
+	class GetMtBookChapterContentThread extends Thread{
+
 		BookChapter chapter;
-		STATE state;
 		int ChapterNum;
-		public GetMtBookChapterContentTask(BookChapter b, STATE s, int l) {
+		int item;
+
+		public GetMtBookChapterContentThread(BookChapter b, int i, int l){
 			chapter = b;
-			state = s;
+			item = i;
 			ChapterNum = l;
 		}
 
-		@Override  
-		protected String  doInBackground(String... params) { 
-			publishProgress(0); 
-			try {
-				String s = new MtParser().getBookChapterContent(chapter.getBookChapterUrl());
-				return s; 
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-		}  
+		public int getWork() {
+			// TODO Auto-generated method stub
+			return ChapterNum;
+		}
 
-		protected void onProgressUpdate(Integer... progress) { 
-			mProgressDialog.setProgress(progress[0]); 
-		}  
+		public void setInital(BookChapter b, int item2, int l) {
+			chapter = b;
+			item = item2;
+			ChapterNum = l;
+		}
 
-		protected void onPostExecute(String result) { 
-			if(result != null) {  
-				bookChars = result;
-				mProgressDialog.dismiss();
+		@Override
+		public void run() {
+			Log.d("SUNMM", "startDown item = "+item+" ChapterNum = "+ChapterNum);
+			String s = new MtParser().getBookChapterContent(chapter.getBookChapterUrl())+"";
+			if(s.length() > 0){
 				chapter.setIsDownload(true);
-				GlobalContext.saveContent(result, chapter.get_ID(), mBookUtil.getBookName());
+				GlobalContext.saveContent(s, chapter.get_ID(), mBookUtil.getBookName());
 				BookChaptersDBTask.updateBookChapterForDownload(chapter);
-				mOnePage.addChapter(bookChars, state, ChapterNum);
-				mPagesView.getAdapter(STATE.CURRENT).notifyDataSetChanged();
+				mOnePage.addChapter(s, item, ChapterNum);
+				mhandler.obtainMessage(DOWNLOAD_CHAPTER_FINISHED, item, 0).sendToTarget();
 			} else {
-				Toast.makeText(getActivity(), "ERROR!!", Toast.LENGTH_SHORT).show();
+				mHasDownloadChapter.remove(ChapterNum+"");
 			}
-		}  
+			super.run();
+		}
 
-		protected void onPreExecute () {//在 doInBackground(Params...)之前被调用，在ui线程执行  
-			mProgressDialog.setProgress(0);//进度条复位  
-		}  
-
-		protected void onCancelled () {//在ui线程执行  
-			mProgressDialog.setProgress(0);//进度条复位  
-		}  
-	}  
+	}
 
 	class pageView{
 		class onePage{

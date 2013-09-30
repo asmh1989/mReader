@@ -15,7 +15,7 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dip"
         android:layout_weight="1" >
 
         <com.sun.mreader.ui.AutoBreakTextView
@@ -57,7 +57,7 @@
         <LinearLayout
             android:id="@+id/loading"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/page_small_text_size"
+            android:layout_height="match_parent"
             android:gravity="center"
             android:orientation="horizontal"
             android:visibility="gone" >
